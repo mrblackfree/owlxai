@@ -1,0 +1,133 @@
+{% extends "/layouts/modal.twig" %}
+
+{% set title = p__('title', 'Payoneer Checkout settings') %}
+
+{% block body %}
+<form class="flex flex-col gap-8" @submit.prevent="submit">
+	<div>
+		<div class="font-semibold">
+			{{ p__('label', 'Status') }}
+		</div>
+
+		<label class="inline-flex items-center gap-2 mt-2">
+			<input type="checkbox" name="is_enabled" class="checkbox" {{ option.payoneer.is_enabled is defined and option.payoneer.is_enabled ? 'checked' : '' }} />
+			{{ p__('input-value', 'Enable Payoneer Checkout') }}
+		</label>
+
+		<ul class="flex flex-col gap-1 text-xs list-disc list-inside mt-2 text-intermediate-content">
+			<li>
+				{{ __('To use Payoneer Checkout, you need to register at %s', '<a href="https://checkout.payoneer.com" target="_blank" class="underline">checkout.payoneer.com</a>')|raw }}
+			</li>
+			<li>
+				{{ __('Payoneer Checkout supports multiple currencies and payment methods globally.') }}
+			</li>
+		</ul>
+	</div>
+
+	<div>
+		<div class="font-semibold">
+			{{ p__('label', 'Environment') }}
+		</div>
+
+		<label class="inline-flex items-center gap-2 mt-2">
+			<input type="checkbox" name="is_live" class="checkbox" {{ option.payoneer.is_live is defined and option.payoneer.is_live ? 'checked' : '' }} />
+			{{ p__('input-value', 'Live mode') }}
+		</label>
+
+		<ul class="flex flex-col gap-1 text-xs list-disc list-inside mt-2 text-intermediate-content">
+			<li>
+				{{ __('When disabled, Payoneer will use sandbox mode. Enable for production use.') }}
+			</li>
+		</ul>
+	</div>
+
+	<div>
+		<label>
+			{{ p__('label', 'Store ID') }}
+
+			<input type="text" name="store_id" class="mt-2 input" autocomplete="off" value="{{ option.payoneer.store_id ?? '' }}" />
+		</label>
+
+		<ul class="flex flex-col gap-1 text-xs list-disc list-inside mt-2 text-intermediate-content">
+			<li>
+				{{ __('You can find your Store ID in the Payoneer Checkout merchant dashboard.') }}
+			</li>
+		</ul>
+	</div>
+
+	<div>
+		<label>
+			{{ p__('label', 'Client ID') }}
+
+			<input type="text" name="client_id" class="mt-2 input" autocomplete="off" value="{{ option.payoneer.client_id ?? '' }}" />
+		</label>
+
+		<ul class="flex flex-col gap-1 text-xs list-disc list-inside mt-2 text-intermediate-content">
+			<li>
+				{{ __('OAuth2 Client ID for API authentication.') }}
+			</li>
+		</ul>
+	</div>
+
+	<div>
+		<label>
+			{{ p__('label', 'Client Secret') }}
+
+			<input type="password" name="client_secret" class="mt-2 input" autocomplete="new-password" value="{{ option.payoneer.client_secret ?? '' }}" />
+		</label>
+
+		<ul class="flex flex-col gap-1 text-xs list-disc list-inside mt-2 text-intermediate-content">
+			<li>
+				{{ __('OAuth2 Client Secret for API authentication.') }}
+			</li>
+			<li>
+				{{ __('Keep this key secure and never share it publicly.') }}
+			</li>
+		</ul>
+	</div>
+
+	<div>
+		<div class="font-semibold">
+			{{ p__('label', 'Webhook URL') }}
+		</div>
+
+		<div class="mt-2">
+			<div class="flex items-center gap-2">
+				<input type="text" class="input" readonly value="{{ base_url }}/webhooks/payoneer" id="webhook-url" />
+				<button type="button" class="button button-sm" @click="copyToClipboard">
+					{{ p__('button', 'Copy') }}
+				</button>
+			</div>
+		</div>
+
+		<ul class="flex flex-col gap-1 text-xs list-disc list-inside mt-2 text-intermediate-content">
+			<li>
+				{{ __('Add this URL to your Payoneer Checkout webhook settings in the merchant dashboard.') }}
+			</li>
+			<li>
+				{{ __('This URL will receive payment notifications from Payoneer.') }}
+			</li>
+		</ul>
+	</div>
+
+	<div>
+		<button type="submit" class="w-full button">
+			{{ p__('button', 'Save changes') }}
+		</button>
+	</div>
+</form>
+
+<script>
+document.addEventListener('alpine:init', () => {
+	Alpine.data('modal', () => ({
+		copyToClipboard() {
+			const input = document.getElementById('webhook-url');
+			input.select();
+			document.execCommand('copy');
+			
+			toast.show('{{ __("Webhook URL copied to clipboard") }}', 'ti ti-copy');
+		}
+	}));
+});
+</script>
+{% endblock %}

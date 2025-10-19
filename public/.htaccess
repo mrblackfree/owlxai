@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # 모든 요청을 index.php로 전달 (파일이나 디렉토리가 존재하지 않는 경우)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . index.php [L]
+</IfModule>
+
+# 디렉토리 리스팅 비활성화
+Options -Indexes
+
+# 문자 인코딩 설정
+AddDefaultCharset UTF-8

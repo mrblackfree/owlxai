@@ -1,0 +1,361 @@
+# GenSpark 스타일 슬라이드 프리셋
+# AI 기반 프레젠테이션 템플릿
+
+presets:
+  - id: business-pitch
+    title: "Business Pitch Deck"
+    description: "스타트업 또는 비즈니스 아이디어를 투자자에게 발표하기 위한 피치 덱"
+    category: "Business"
+    type: "slide_generation"
+    icon: "briefcase"
+    template: |
+      Create a compelling business pitch presentation about: {topic}
+      
+      Structure the presentation with:
+      1. Problem Statement - What problem are you solving?
+      2. Solution - Your unique value proposition
+      3. Market Opportunity - TAM, SAM, SOM analysis
+      4. Business Model - How you make money
+      5. Competitive Landscape - Your competitive advantages
+      6. Traction - Key metrics and milestones
+      7. Team - Founding team and advisors
+      8. Financial Projections - 3-5 year outlook
+      9. Use of Funds - How you'll use the investment
+      10. Ask - What you're raising and terms
+      
+      Make it compelling, data-driven, and investor-focused.
+    default_params:
+      slide_count: 12
+      theme: "professional"
+      template: "business"
+      include_charts: true
+      include_images: true
+
+  - id: product-launch
+    title: "Product Launch Presentation"
+    description: "신제품 출시를 위한 마케팅 프레젠테이션"
+    category: "Marketing"
+    type: "slide_generation"
+    icon: "rocket"
+    template: |
+      Create an exciting product launch presentation for: {topic}
+      
+      Include:
+      1. Title Slide - Product name and tagline
+      2. Problem We're Solving
+      3. Introducing [Product Name]
+      4. Key Features - Highlight 3-5 main features
+      5. How It Works - User journey
+      6. Benefits & Value Proposition
+      7. Target Market
+      8. Pricing & Packages
+      9. Launch Timeline
+      10. Marketing Strategy
+      11. Success Metrics
+      12. Call to Action
+      
+      Make it visual, engaging, and customer-focused.
+    default_params:
+      slide_count: 12
+      theme: "creative"
+      template: "modern"
+      include_images: true
+
+  - id: quarterly-business-review
+    title: "Quarterly Business Review"
+    description: "분기별 비즈니스 성과 리뷰 프레젠테이션"
+    category: "Business"
+    type: "slide_generation"
+    icon: "chart-line"
+    template: |
+      Create a comprehensive quarterly business review for: {topic}
+      
+      Cover:
+      1. Executive Summary
+      2. Q{quarter} Highlights
+      3. Revenue Performance
+      4. Key Metrics Dashboard
+      5. Customer Acquisition & Retention
+      6. Product/Service Updates
+      7. Team Growth & Development
+      8. Challenges & Learnings
+      9. Market Trends & Insights
+      10. Next Quarter Goals
+      11. Action Items
+      12. Q&A
+      
+      Use data visualization extensively. Be professional and analytical.
+    default_params:
+      slide_count: 12
+      theme: "professional"
+      template: "business"
+      include_charts: true
+
+  - id: academic-research
+    title: "Academic Research Presentation"
+    description: "학술 연구 발표를 위한 프레젠테이션"
+    category: "Education"
+    type: "slide_generation"
+    icon: "school"
+    template: |
+      Create an academic research presentation on: {topic}
+      
+      Structure:
+      1. Title & Research Team
+      2. Abstract
+      3. Introduction & Background
+      4. Literature Review
+      5. Research Questions/Hypotheses
+      6. Methodology
+      7. Results & Findings
+      8. Data Analysis
+      9. Discussion
+      10. Implications & Applications
+      11. Limitations & Future Research
+      12. Conclusion & References
+      
+      Use academic tone, include citations, and focus on rigor.
+    default_params:
+      slide_count: 15
+      theme: "minimal"
+      template: "academic"
+      include_charts: true
+
+  - id: training-workshop
+    title: "Training Workshop"
+    description: "교육 및 워크샵을 위한 인터랙티브 프레젠테이션"
+    category: "Training"
+    type: "slide_generation"
+    icon: "users"
+    template: |
+      Create an engaging training workshop presentation on: {topic}
+      
+      Include:
+      1. Welcome & Objectives
+      2. Agenda
+      3. Why This Matters
+      4. Key Concepts (3-4 main concepts)
+      5. Practical Examples
+      6. Interactive Exercise
+      7. Common Mistakes to Avoid
+      8. Best Practices
+      9. Real-World Applications
+      10. Q&A & Discussion
+      11. Key Takeaways
+      12. Resources & Next Steps
+      
+      Make it interactive, practical, and learner-focused.
+    default_params:
+      slide_count: 12
+      theme: "colorful"
+      template: "modern"
+      include_images: true
+
+  - id: sales-presentation
+    title: "Sales Presentation"
+    description: "제품 또는 서비스를 판매하기 위한 프레젠테이션"
+    category: "Sales"
+    type: "slide_generation"
+    icon: "currency-dollar"
+    template: |
+      Create a persuasive sales presentation for: {topic}
+      
+      Follow this structure:
+      1. Introduction - Build rapport
+      2. Understanding Your Needs - Customer pain points
+      3. Our Solution - How we solve their problems
+      4. Key Features & Benefits
+      5. Success Stories - Case studies and testimonials
+      6. ROI & Value Proposition
+      7. Pricing & Packages
+      8. Implementation Process
+      9. Why Choose Us - Competitive advantages
+      10. Risk Mitigation - Addressing concerns
+      11. Next Steps
+      12. Closing & Call to Action
+      
+      Focus on customer benefits and value. Be persuasive but authentic.
+    default_params:
+      slide_count: 12
+      theme: "professional"
+      template: "business"
+      include_images: true
+
+  - id: project-kickoff
+    title: "Project Kickoff"
+    description: "프로젝트 시작을 위한 킥오프 미팅 프레젠테이션"
+    category: "Project Management"
+    type: "slide_generation"
+    icon: "flag"
+    template: |
+      Create a project kickoff presentation for: {topic}
+      
+      Cover:
+      1. Project Overview
+      2. Project Goals & Objectives
+      3. Success Criteria
+      4. Scope & Deliverables
+      5. Timeline & Milestones
+      6. Team Structure & Roles
+      7. Communication Plan
+      8. Risk Assessment
+      9. Budget & Resources
+      10. Stakeholder Management
+      11. Key Processes
+      12. Next Steps & Action Items
+      
+      Be clear, organized, and action-oriented.
+    default_params:
+      slide_count: 12
+      theme: "professional"
+      template: "business"
+
+  - id: company-overview
+    title: "Company Overview"
+    description: "회사 소개 프레젠테이션"
+    category: "Business"
+    type: "slide_generation"
+    icon: "building"
+    template: |
+      Create a comprehensive company overview for: {topic}
+      
+      Include:
+      1. Company Introduction
+      2. Mission, Vision & Values
+      3. Company History & Milestones
+      4. Products & Services
+      5. Market Position
+      6. Key Achievements
+      7. Team & Leadership
+      8. Corporate Culture
+      9. Customer Success Stories
+      10. Awards & Recognition
+      11. Future Vision
+      12. Contact & Let's Connect
+      
+      Professional, inspiring, and brand-aligned.
+    default_params:
+      slide_count: 12
+      theme: "professional"
+      template: "business"
+      include_images: true
+
+  - id: marketing-strategy
+    title: "Marketing Strategy"
+    description: "마케팅 전략 프레젠테이션"
+    category: "Marketing"
+    type: "slide_generation"
+    icon: "chart-bar"
+    template: |
+      Create a strategic marketing presentation for: {topic}
+      
+      Cover:
+      1. Executive Summary
+      2. Market Analysis - Current landscape
+      3. Target Audience - Personas and segments
+      4. Competitive Analysis
+      5. SWOT Analysis
+      6. Marketing Objectives - SMART goals
+      7. Marketing Mix (4Ps/7Ps)
+      8. Channel Strategy
+      9. Campaign Ideas
+      10. Budget Allocation
+      11. KPIs & Measurement
+      12. Timeline & Implementation
+      
+      Strategic, data-driven, and actionable.
+    default_params:
+      slide_count: 12
+      theme: "creative"
+      template: "modern"
+      include_charts: true
+
+  - id: investor-update
+    title: "Investor Update"
+    description: "투자자를 위한 정기 업데이트 프레젠테이션"
+    category: "Business"
+    type: "slide_generation"
+    icon: "trending-up"
+    template: |
+      Create an investor update presentation for: {topic}
+      
+      Include:
+      1. Key Highlights
+      2. Financial Performance
+      3. Growth Metrics
+      4. Product Updates
+      5. Customer Traction
+      6. Team Expansion
+      7. Market Developments
+      8. Challenges & Solutions
+      9. Use of Capital
+      10. Updated Projections
+      11. Upcoming Milestones
+      12. Q&A
+      
+      Transparent, data-focused, and forward-looking.
+    default_params:
+      slide_count: 12
+      theme: "professional"
+      template: "business"
+      include_charts: true
+
+  - id: ted-talk-style
+    title: "TED Talk Style Presentation"
+    description: "영감을 주는 TED 스타일 프레젠테이션"
+    category: "Inspirational"
+    type: "slide_generation"
+    icon: "star"
+    template: |
+      Create an inspiring TED-style presentation on: {topic}
+      
+      Structure:
+      1. Hook - Compelling opening story or question
+      2. Personal Connection - Why this matters to you
+      3. The Big Idea - Your main thesis
+      4. Supporting Evidence - 3 key points
+      5. Unexpected Perspective - Challenge assumptions
+      6. Real-World Impact - Practical applications
+      7. Visual Demonstration or Example
+      8. Call to Action - What can audience do
+      9. Memorable Conclusion
+      
+      Minimal text, powerful images, storytelling focus.
+      Aim for 10-15 minutes speaking time.
+    default_params:
+      slide_count: 10
+      theme: "minimal"
+      template: "modern"
+      include_images: true
+
+  - id: crisis-communication
+    title: "Crisis Communication"
+    description: "위기 상황 커뮤니케이션 프레젠테이션"
+    category: "Communication"
+    type: "slide_generation"
+    icon: "alert-triangle"
+    template: |
+      Create a clear crisis communication presentation for: {topic}
+      
+      Cover:
+      1. Situation Overview - What happened
+      2. Immediate Impact
+      3. Actions Taken - Response so far
+      4. Current Status
+      5. Root Cause Analysis
+      6. Stakeholder Communication
+      7. Mitigation Plan
+      8. Lessons Learned
+      9. Preventive Measures
+      10. Recovery Timeline
+      11. Support & Resources
+      12. Next Steps & Q&A
+      
+      Clear, honest, action-oriented, and reassuring.
+    default_params:
+      slide_count: 12
+      theme: "professional"
+      template: "business"
+
+
+

@@ -1,0 +1,94 @@
+{% extends "/layouts/base.twig" %}
+
+{% block title p__('title', 'Payment Processing')|title %}
+
+{% block body %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+    <div class="max-w-md w-full">
+        <div class="text-center mb-8">
+            <img src="{{ option.brand.logo_dark ?? '/assets/logo-light.svg' }}" 
+                 alt="{{ option.site.name ?? 'Logo' }}" 
+                 class="hidden dark:block h-12 mx-auto mb-6">
+            <img src="{{ option.brand.logo ?? '/assets/logo-dark.svg' }}" 
+                 alt="{{ option.site.name ?? 'Logo' }}" 
+                 class="block dark:hidden h-12 mx-auto mb-6">
+            
+            <h1 class="text-2xl font-bold mb-2">{{ __('결제 진행 중') }}</h1>
+            <p class="text-gray-600 dark:text-gray-400">{{ __('잠시만 기다려주세요...') }}</p>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold mb-4">{{ __('주문 정보') }}</h2>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-400">{{ __('상품명') }}</span>
+                        <span class="font-medium">{{ orderName }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600 dark:text-gray-400">{{ __('결제 금액') }}</span>
+                        <span class="font-medium text-xl">₩{{ amount|number_format(0, '.', ',') }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="payment-widget" class="w-full"></div>
+            
+            <div class="mt-6 flex gap-3">
+                <button type="button" 
+                        id="payment-button" 
+                        class="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    {{ __('결제하기') }}
+                </button>
+                <a href="/app/billing" 
+                   class="px-6 py-3 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors">
+                    {{ __('취소') }}
+                </a>
+            </div>
+        </div>
+        
+        <div class="mt-4 text-center text-sm text-gray-500">
+            <p>{{ __('안전한 결제를 위해 토스페이먼츠를 사용합니다.') }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- 토스페이먼츠 SDK -->
+<script src="https://js.tosspayments.com/v1/payment-widget"></script>
+
+<script>
+// 토스페이먼츠 초기화
+const clientKey = '{{ clientKey }}';
+const customerKey = '{{ order.workspace.owner.id.value }}';
+
+const paymentWidget = PaymentWidget(clientKey, customerKey);
+
+// 결제 UI 렌더링
+paymentWidget.renderPaymentMethods('#payment-widget', { value: {{ amount }} });
+
+// 결제 버튼 클릭 처리
+document.getElementById('payment-button').addEventListener('click', async () => {
+    const button = document.getElementById('payment-button');
+    button.disabled = true;
+    button.textContent = '{{ __("처리 중...") }}';
+    
+    try {
+        // 결제 요청
+        await paymentWidget.requestPayment({
+            orderId: '{{ orderId }}',
+            orderName: '{{ orderName }}',
+            customerName: '{{ customerName }}',
+            customerEmail: '{{ customerEmail }}',
+            successUrl: '{{ successUrl }}',
+            failUrl: '{{ failUrl }}'
+        });
+    } catch (error) {
+        // 에러 처리
+        console.error('Payment error:', error);
+        alert('{{ __("결제 중 오류가 발생했습니다. 다시 시도해주세요.") }}');
+        button.disabled = false;
+        button.textContent = '{{ __("결제하기") }}';
+    }
+});
+</script>
+{% endblock %}

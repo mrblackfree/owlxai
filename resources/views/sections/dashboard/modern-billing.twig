@@ -1,0 +1,138 @@
+<div class="grid gap-6 md:grid-cols-3">
+	{# Subscription Status Card #}
+	<div class="md:col-span-2 modern-card group">
+		<div class="flex items-start gap-4">
+			<div class="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white shrink-0">
+				<i class="ti ti-credit-card text-2xl"></i>
+			</div>
+			
+			<div class="flex-1">
+				<h3 class="text-lg font-semibold mb-2">{{ __('Subscription Status') }}</h3>
+				
+				{% if workspace.subscription %}
+					<div class="mb-4">
+						<p class="text-2xl font-bold gradient-text mb-1">
+							{{ workspace.subscription.plan.title }}
+						</p>
+						
+						<div class="flex items-center gap-2">
+							<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+								<span class="w-1.5 h-1.5 rounded-full bg-green-400 mr-1.5 animate-pulse"></span>
+								{{ __('Active') }}
+							</span>
+							
+							{% if workspace.subscription.cancel_at %}
+								<span class="text-sm text-red-600 dark:text-red-400">
+									{{ __("Cancels %s", '<x-time datetime="' ~ workspace.subscription.cancel_at ~ '"></x-time>')|raw }}
+								</span>
+							{% elseif workspace.subscription.renew_at %}
+								<span class="text-sm text-content-dimmed">
+									{{ __("Renews %s", '<x-time datetime="' ~ workspace.subscription.renew_at ~ '"></x-time>')|raw }}
+								</span>
+							{% endif %}
+						</div>
+					</div>
+					
+					{# Usage Progress Bar #}
+					<div class="mb-4">
+						<div class="flex justify-between text-sm mb-1">
+							<span class="text-content-dimmed">{{ __('Billing Cycle Progress') }}</span>
+							<span class="font-medium">{{ ((now|date('U') - workspace.subscription.created_at|date('U')) / (workspace.subscription.renew_at|date('U') - workspace.subscription.created_at|date('U')) * 100)|round }}%</span>
+						</div>
+						<div class="progress-modern">
+							<div class="progress-fill" style="width: {{ ((now|date('U') - workspace.subscription.created_at|date('U')) / (workspace.subscription.renew_at|date('U') - workspace.subscription.created_at|date('U')) * 100)|round }}%"></div>
+						</div>
+					</div>
+				{% else %}
+					<div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 mb-4">
+						<div class="flex gap-3">
+							<i class="ti ti-alert-triangle text-amber-600 dark:text-amber-500 text-xl shrink-0"></i>
+							<div>
+								<p class="font-medium text-amber-900 dark:text-amber-200">
+									{{ __("No active subscription") }}
+								</p>
+								<p class="text-sm text-amber-700 dark:text-amber-300 mt-1">
+									{{ __('Subscribe to unlock all features and benefits.') }}
+								</p>
+							</div>
+						</div>
+					</div>
+				{% endif %}
+				
+				<a href="app/billing" class="btn-modern inline-flex items-center gap-2">
+					<i class="ti ti-external-link"></i>
+					{{ p__('button', 'Manage Billing') }}
+				</a>
+			</div>
+		</div>
+	</div>
+
+	{# Credits Card #}
+	<div class="modern-card group">
+		<div class="flex flex-col h-full">
+			<div class="flex items-center justify-between mb-4">
+				<div class="p-3 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 text-white">
+					<i class="ti ti-coins text-2xl"></i>
+				</div>
+				
+				{% if workspace.total_credit_count < 100 %}
+					<span class="notification-dot"></span>
+				{% endif %}
+			</div>
+			
+			<div class="flex-1">
+				<h3 class="text-sm font-medium text-content-dimmed mb-1">
+					{{ workspace.total_credit_count < 0 ? __('Overused Credits') : __('Available Credits') }}
+				</h3>
+				
+				<div class="flex items-baseline gap-2 mb-4">
+					<span class="text-3xl font-bold {{ workspace.total_credit_count < 0 ? 'text-red-500' : 'gradient-text' }}">
+						<x-credit data-value="{{ workspace.total_credit_count }}"></x-credit>
+					</span>
+					
+					{% if workspace.total_credit_count < 0 %}
+						<span class="text-sm text-red-500">
+							{{ __('overused') }}
+						</span>
+					{% endif %}
+				</div>
+				
+				{# Credits Usage Visualization #}
+				{% if workspace.subscription and workspace.subscription.plan.credit_count > 0 %}
+					<div class="mb-4">
+						<div class="flex justify-between text-xs mb-1">
+							<span class="text-content-dimmed">{{ __('Monthly Usage') }}</span>
+							<span class="font-medium">
+								{{ ((workspace.subscription.plan.credit_count - workspace.credit_count) / workspace.subscription.plan.credit_count * 100)|round }}%
+							</span>
+						</div>
+						<div class="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+							<div class="h-full bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full transition-all duration-1000"
+								 style="width: {{ ((workspace.subscription.plan.credit_count - workspace.credit_count) / workspace.subscription.plan.credit_count * 100)|round }}%">
+							</div>
+						</div>
+					</div>
+				{% endif %}
+			</div>
+			
+			{% if workspace.subscription %}
+				<button type="button" 
+					{% if option.billing.custom_credits.enabled|default(false) %}
+						@click="modal.open('custom-credits')"
+					{% else %}
+						onclick="window.location.href='app/billing/packs'"
+					{% endif %}
+					class="w-full px-4 py-2 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-primary hover:bg-primary/5 transition-all group/btn">
+					<span class="flex items-center justify-center gap-2 text-sm font-medium">
+						<i class="ti ti-plus group-hover/btn:rotate-90 transition-transform"></i>
+						{{ __('Get More Credits') }}
+					</span>
+				</button>
+			{% endif %}
+		</div>
+	</div>
+</div>
+
+{% if option.billing.custom_credits.enabled|default(false) %}
+	{% include "snippets/custom-credits.twig" %}
+{% endif %}

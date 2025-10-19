@@ -1,0 +1,209 @@
+<div class="min-h-[70vh] flex items-center justify-center relative overflow-hidden">
+	{# Animated Background #}
+	<div class="absolute inset-0 -z-10">
+		<div class="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+		<div class="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+		<div class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+	</div>
+
+	<div id="quick-access" class="relative w-full max-w-4xl mx-auto px-4" x-data="quickAccess">
+		<div class="text-center mb-12 animate-fade-in">
+			{# Greeting with Emoji Animation #}
+			<div class="inline-flex items-center gap-3 mb-4">
+				<span class="text-4xl animate-wave inline-block">👋</span>
+				<h2 class="text-3xl md:text-4xl font-bold gradient-text">
+					{{ p__('greeting', 'Hello, %s!', user.first_name) }}
+				</h2>
+			</div>
+			
+			<p class="text-xl md:text-2xl text-content-dimmed">
+				{{ p__('greeting', 'How can I assist you today?') }}
+			</p>
+		</div>
+
+		{# Modern Search Box #}
+		<form action="app/chat" method="GET" class="mb-8 animate-slide-up">
+			<div class="relative group">
+				<div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+				<div class="relative glass-morphism rounded-2xl p-1">
+					<div class="flex items-center bg-main rounded-xl">
+						<div class="flex-1 px-6 py-4">
+							<textarea 
+								placeholder="{{ __('Ask me anything... Type your question here') }}" 
+								name="q" 
+								rows="1" 
+								required 
+								x-model="prompt" 
+								x-ref="input" 
+								class="w-full bg-transparent border-none focus:ring-0 resize-none text-lg placeholder:text-content-dimmed focus:outline-none"
+								@keydown.enter.prevent="if (!$event.shiftKey) $el.form.submit()"
+							></textarea>
+						</div>
+						
+						<div class="pr-3">
+							<button type="submit" class="btn-modern group flex items-center gap-2" :disabled="!prompt.trim() || processing">
+								<span class="hidden md:inline">{{ __('Send') }}</span>
+								<i class="ti ti-send text-xl group-hover:rotate-12 transition-transform"></i>
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			{# Voice Input Button #}
+			<div class="flex justify-center mt-4">
+				<button type="button" class="text-content-dimmed hover:text-primary flex items-center gap-2 transition-colors">
+					<i class="ti ti-microphone"></i>
+					<span class="text-sm">{{ __('Use voice input') }}</span>
+				</button>
+			</div>
+		</form>
+
+		{# Quick Action Cards #}
+		<div class="grid-modern animate-fade-in-up">
+			{% set actions = [
+				{
+					'url': '/app/writer',
+					'icon': 'ti-pencil',
+					'title': __('Write Content'),
+					'description': __('Create articles, blogs, and more'),
+					'color': 'from-blue-500 to-cyan-500'
+				},
+				{
+					'url': '/app/imagine',
+					'icon': 'ti-photo-ai',
+					'title': __('Generate Images'),
+					'description': __('Create stunning AI images'),
+					'color': 'from-purple-500 to-pink-500'
+				},
+				{
+					'url': '/app/chat',
+					'icon': 'ti-message-chatbot',
+					'title': __('AI Chat'),
+					'description': __('Chat with AI assistant'),
+					'color': 'from-green-500 to-teal-500'
+				},
+				{
+					'url': '/app/video',
+					'icon': 'ti-movie',
+					'title': __('Create Videos'),
+					'description': __('Generate videos with AI'),
+					'color': 'from-orange-500 to-red-500'
+				}
+			] %}
+
+			{% for action in actions %}
+				{% if option.features[action.url|split('/')|last].is_enabled|default(true) %}
+					<a href="{{ action.url }}" class="tool-card group block">
+						<div class="flex items-start gap-4">
+							<div class="p-3 rounded-xl bg-gradient-to-br {{ action.color }} text-white">
+								<i class="ti {{ action.icon }} text-2xl"></i>
+							</div>
+							<div class="flex-1">
+								<h3 class="font-semibold text-lg mb-1 group-hover:text-primary transition-colors">
+									{{ action.title }}
+								</h3>
+								<p class="text-sm text-content-dimmed">
+									{{ action.description }}
+								</p>
+							</div>
+							<i class="ti ti-arrow-right text-content-dimmed group-hover:text-primary transition-all transform group-hover:translate-x-1"></i>
+						</div>
+					</a>
+				{% endif %}
+			{% endfor %}
+		</div>
+
+		{# Suggested Prompts #}
+		<div class="mt-12 text-center animate-fade-in-up animation-delay-300">
+			<h3 class="text-sm font-medium text-content-dimmed mb-4">{{ __('Try these prompts') }}</h3>
+			<div class="flex flex-wrap justify-center gap-2">
+				{% set prompts = [
+					__('Write a blog post about AI'),
+					__('Create a product description'),
+					__('Generate a business logo'),
+					__('Translate text to Spanish')
+				] %}
+				
+				{% for prompt in prompts %}
+					<button 
+						type="button" 
+						class="px-4 py-2 text-sm rounded-full border border-line hover:border-primary hover:bg-primary hover:text-white transition-all"
+						@click="prompt = '{{ prompt }}'; $refs.input.focus()"
+					>
+						{{ prompt }}
+					</button>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+</div>
+
+{# Custom Animations #}
+<style>
+@keyframes blob {
+	0% { transform: translate(0px, 0px) scale(1); }
+	33% { transform: translate(30px, -50px) scale(1.1); }
+	66% { transform: translate(-20px, 20px) scale(0.9); }
+	100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes wave {
+	0% { transform: rotate(0deg); }
+	10% { transform: rotate(14deg); }
+	20% { transform: rotate(-8deg); }
+	30% { transform: rotate(14deg); }
+	40% { transform: rotate(-4deg); }
+	50% { transform: rotate(10deg); }
+	60% { transform: rotate(0deg); }
+	100% { transform: rotate(0deg); }
+}
+
+@keyframes fade-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+@keyframes slide-up {
+	from { opacity: 0; transform: translateY(20px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in-up {
+	from { opacity: 0; transform: translateY(30px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-blob {
+	animation: blob 7s infinite;
+}
+
+.animate-wave {
+	animation: wave 2.5s ease-in-out infinite;
+	transform-origin: 70% 70%;
+}
+
+.animate-fade-in {
+	animation: fade-in 0.8s ease-out;
+}
+
+.animate-slide-up {
+	animation: slide-up 0.8s ease-out;
+}
+
+.animate-fade-in-up {
+	animation: fade-in-up 0.8s ease-out both;
+}
+
+.animation-delay-2000 {
+	animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+	animation-delay: 4s;
+}
+
+.animation-delay-300 {
+	animation-delay: 0.3s;
+}
+</style>

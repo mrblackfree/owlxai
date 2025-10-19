@@ -1,0 +1,122 @@
+{% extends "/layouts/modal.twig" %}
+
+{% set title = p__('title', 'Plisio settings') %}
+
+{% block body %}
+<form class="flex flex-col gap-8" @submit.prevent="submit">
+	<div>
+		<div class="font-semibold">
+			{{ p__('label', 'Status') }}
+		</div>
+
+		<label class="inline-flex items-center gap-2 mt-2">
+			<input type="checkbox" name="is_enabled" class="checkbox" {{ option.plisio.is_enabled is defined and option.plisio.is_enabled ? 'checked' : '' }} />
+			{{ p__('input-value', 'Enable Plisio') }}
+		</label>
+
+		<ul class="flex flex-col gap-1 text-xs list-disc list-inside mt-2 text-intermediate-content">
+			<li>
+				{{ __('To use Plisio, you need to register at %s', '<a href="https://plisio.net" target="_blank" class="underline">plisio.net</a>')|raw }}
+			</li>
+			<li>
+				{{ __('Plisio supports multiple cryptocurrencies including Bitcoin, Ethereum, USDT, and more.') }}
+			</li>
+			<li>
+				{{ __('Low transaction fees with instant payment notifications.') }}
+			</li>
+		</ul>
+	</div>
+
+	<div>
+		<label>
+			{{ p__('label', 'API Key') }}
+
+			<input type="password" name="api_key" class="mt-2 input" autocomplete="new-password" value="{{ option.plisio.api_key ?? '' }}" />
+		</label>
+
+		<ul class="flex flex-col gap-1 text-xs list-disc list-inside mt-2 text-intermediate-content">
+			<li>
+				{{ __('You can find your API Key in the Plisio dashboard under API settings.') }}
+			</li>
+			<li>
+				{{ __('Keep this key secure and never share it publicly.') }}
+			</li>
+		</ul>
+	</div>
+
+	<div>
+		<div class="font-semibold">
+			{{ p__('label', 'Webhook URL') }}
+		</div>
+
+		<div class="mt-2">
+			<div class="flex items-center gap-2">
+				<input type="text" class="input" readonly value="{{ base_url }}/webhooks/plisio" id="webhook-url" />
+				<button type="button" class="button button-sm" @click="copyToClipboard">
+					{{ p__('button', 'Copy') }}
+				</button>
+			</div>
+		</div>
+
+		<ul class="flex flex-col gap-1 text-xs list-disc list-inside mt-2 text-intermediate-content">
+			<li>
+				{{ __('Add this URL to your Plisio webhook settings in the dashboard.') }}
+			</li>
+			<li>
+				{{ __('This URL will receive payment notifications from Plisio.') }}
+			</li>
+			<li>
+				{{ __('Make sure to enable IPN (Instant Payment Notification) in your Plisio account.') }}
+			</li>
+		</ul>
+	</div>
+
+	<div>
+		<div class="font-semibold">
+			{{ p__('label', 'Supported Cryptocurrencies') }}
+		</div>
+
+		<div class="flex flex-wrap gap-2 mt-2">
+			<div class="flex items-center gap-1 px-3 py-1 rounded-full bg-intermediate text-sm">
+				<img src="/assets/icons/crypto/btc.svg" alt="Bitcoin" class="w-4 h-4">
+				<span>Bitcoin</span>
+			</div>
+			<div class="flex items-center gap-1 px-3 py-1 rounded-full bg-intermediate text-sm">
+				<img src="/assets/icons/crypto/eth.svg" alt="Ethereum" class="w-4 h-4">
+				<span>Ethereum</span>
+			</div>
+			<div class="flex items-center gap-1 px-3 py-1 rounded-full bg-intermediate text-sm">
+				<img src="/assets/icons/crypto/usdt.svg" alt="Tether" class="w-4 h-4">
+				<span>USDT</span>
+			</div>
+			<div class="flex items-center gap-1 px-3 py-1 rounded-full bg-intermediate text-sm">
+				<span class="text-xs">+50 more</span>
+			</div>
+		</div>
+
+		<p class="text-xs text-content-dimmed mt-2">
+			{{ __('Plisio supports over 50 cryptocurrencies. Users can choose their preferred cryptocurrency at checkout.') }}
+		</p>
+	</div>
+
+	<div>
+		<button type="submit" class="w-full button">
+			{{ p__('button', 'Save changes') }}
+		</button>
+	</div>
+</form>
+
+<script>
+document.addEventListener('alpine:init', () => {
+	Alpine.data('modal', () => ({
+		copyToClipboard() {
+			const input = document.getElementById('webhook-url');
+			input.select();
+			document.execCommand('copy');
+			
+			toast.show('{{ __("Webhook URL copied to clipboard") }}', 'ti ti-copy');
+		}
+	}));
+});
+</script>
+{% endblock %}

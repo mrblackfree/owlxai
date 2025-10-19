@@ -1,0 +1,53 @@
+{% extends "@emails/layout.twig" %}
+
+{% block subject %}
+	{% if option.site.name is defined and option.site.name %}
+		{{ option.site.name }}의
+		{{ workspace.name }}
+		워크스페이스 초대
+	{% else %}
+		{{ workspace.name }}
+		워크스페이스 초대
+	{% endif %}
+{% endblock %}
+
+{% block content %}
+	<div>
+		{% if option.site.name is defined and option.site.name  %}
+			<strong>{{ option.site.name }}</strong>에서 인사드립니다,
+		{% else %}
+			안녕하세요,
+		{% endif %}
+
+		<p>
+			{% if option.site.name is defined and option.site.name  %}
+				<strong>{{ option.site.name }}</strong>의
+				<strong>{{ workspace.name }}</strong>
+				워크스페이스의 구성원으로 초대되었습니다.
+			{% else %}
+				<strong>{{ workspace.name }}</strong>
+				워크스페이스의 구성원으로 초대되었습니다.
+			{% endif %}
+		</p>
+
+		<p>
+			아래 버튼을 클릭하여 초대를 수락하세요:
+		</p>
+
+		<p>
+			<a href="{{ accept_invitation_url }}" class="button">초대 수락하기</a>
+		</p>
+
+		<p>이 초대가 낯설게 느껴지신다면, 이 메시지를 무시하셔도 됩니다.</p>
+
+		<p>
+			감사합니다.
+			<br/>
+
+			<strong>
+				{{ option.site.name ?? '' }}
+				팀 드림
+			</strong>
+		</p>
+	</div>
+{% endblock %}

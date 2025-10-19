@@ -1,0 +1,85 @@
+{% extends "/layouts/base.twig" %}
+
+{% block layout %}
+	<div class="lg:flex lg:items-start lg:min-h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+		{# Modern Sidebar #}
+		{% include "/sections/modern-aside.twig" %}
+
+		{# Mobile Navigation #}
+		<div class="sticky top-0 z-30 block lg:hidden glass-morphism backdrop-blur-xl border-b border-white/10">
+			<div class="mx-auto w-full">
+				{% include "/sections/modern-mobile-nav.twig" %}
+			</div>
+		</div>
+
+		{# Main Content Area #}
+		<div class="w-full min-h-screen lg:h-screen flex flex-col overflow-y-auto relative" id="content">
+			{# Gradient Background #}
+			<div class="fixed inset-0 -z-10">
+				<div class="absolute top-0 -left-1/4 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 dark:opacity-10"></div>
+				<div class="absolute top-1/3 -right-1/4 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 dark:opacity-10"></div>
+				<div class="absolute bottom-0 left-1/3 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 dark:opacity-10"></div>
+			</div>
+
+			{# Top Bar #}
+			{% include "/sections/modern-topbar.twig" %}
+
+			{# Toolbar #}
+			<div class="relative">
+				{% block toolbar %}{% endblock %}
+			</div>
+
+			{# Main Content #}
+			<div class="flex-1 w-full">
+				<main class="animate-fade-in">
+					{% block template %}{% endblock %}
+				</main>
+
+				{# Footer #}
+				{% block footer %}
+					{% include "/sections/modern-footer.twig" %}
+				{% endblock %}
+			</div>
+		</div>
+
+		{# Right Sidebar (if needed) #}
+		<aside id="sidebar" 
+			   class="glass-morphism backdrop-blur-xl overflow-y-auto sticky z-10 top-0 hidden xl:flex flex-col gap-4 h-screen shrink-0 w-80 border-l border-white/10 -mr-80 transition-all ease-in-out duration-300"
+			   :class="{ 'mr-0': $store.sidebar.open }">
+			{% block sidebar %}{% endblock %}
+		</aside>
+	</div>
+
+	{# Workspace Switcher Modal #}
+	{% include "/snippets/workspace/modern-switcher.twig" %}
+	
+	{# Global Animations #}
+	<style>
+		@keyframes fade-in {
+			from { opacity: 0; }
+			to { opacity: 1; }
+		}
+		
+		.animate-fade-in {
+			animation: fade-in 0.5s ease-out;
+		}
+	</style>
+{% endblock %}
+
+{% block scripts %}
+	{# Alpine.js Store for Sidebar #}
+	<script>
+		document.addEventListener('alpine:init', () => {
+			Alpine.store('sidebar', {
+				open: false,
+				toggle() {
+					this.open = !this.open;
+				}
+			});
+		});
+	</script>
+	
+	{% if view_namespace in ['app', 'admin'] %}
+		<script type="module" src="{{ ('/resources/assets/js/' ~ view_namespace ~ '/index.js')|asset }}"></script>
+	{% endif %}
+{% endblock %}

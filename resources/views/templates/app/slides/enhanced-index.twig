@@ -1,0 +1,426 @@
+{% extends "/layouts/main.twig" %}
+
+{% set active_menu = '/app/slides' %}
+{% set xdata = 'enhancedSlides' %}
+{% block title p__('title', 'AI Presentation Generator')|title %}
+
+{% block template %}
+<div x-data="{
+    slides: [],
+    services: {{ services|json_encode }},
+    presets: {{ presets|json_encode }},
+    selectedService: null,
+    selectedModel: null,
+    showCreateModal: false,
+    isCreating: false,
+    prompt: '',
+    theme: 'professional',
+    template: 'modern',
+    slideCount: 10,
+    includeImages: true,
+    includeCharts: true,
+    enableWebSearch: true,
+    searchProgress: '',
+    generationProgress: '',
+    
+    init() {
+        if (this.services.length > 0) {
+            this.selectedService = this.services[0].title;
+            this.selectedModel = this.services[0].models[0].value;
+        }
+        this.fetchSlides();
+    },
+    
+    async fetchSlides() {
+        try {
+            const response = await api.get('/api/library/items?type=slide');
+            if (response.data) {
+                this.slides = response.data;
+            }
+        } catch (error) {
+            console.error('Failed to fetch slides:', error);
+        }
+    },
+    
+    async createSlide() {
+        if (!this.prompt || this.isCreating) return;
+        
+        this.isCreating = true;
+        this.searchProgress = '';
+        this.generationProgress = '';
+        
+        try {
+            const response = await fetch('/api/slides', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    prompt: this.prompt,
+                    model: this.selectedModel,
+                    theme: this.theme,
+                    template: this.template,
+                    slide_count: this.slideCount,
+                    include_images: this.includeImages,
+                    include_data_placeholders: this.includeCharts,
+                    enable_web_search: this.enableWebSearch
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to create slide');
+            }
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+                        if (data === '[DONE]') continue;
+                        
+                        try {
+                            const event = JSON.parse(data);
+                            
+                            // Update progress
+                            if (event.type === 'chunk' && event.data) {
+                                const text = event.data.text || '';
+                                if (text.includes('🔍')) {
+                                    this.searchProgress += text;
+                                } else if (text.includes('🎨')) {
+                                    this.generationProgress = 'Designing presentation...';
+                                }
+                            }
+                            
+                            if (event.type === 'slide' && event.data && event.data.id) {
+                                window.location.href = `/app/slides/${event.data.id}`;
+                                return;
+                            }
+                        } catch (e) {
+                            console.error('Failed to parse event:', e);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to create slide:', error);
+            alert('Failed to create slide. Please try again.');
+        } finally {
+            this.isCreating = false;
+        }
+    },
+    
+    selectPreset(preset) {
+        this.prompt = preset.template;
+        this.slideCount = preset.default_params.slide_count || 10;
+        this.theme = preset.default_params.theme || 'professional';
+        this.template = preset.default_params.template || 'modern';
+        this.includeImages = preset.default_params.include_images !== false;
+        this.includeCharts = preset.default_params.include_charts !== false;
+    }
+}">
+    {# Header #}
+    <div>
+        {% include "snippets/back.twig" with {link: 'app', label: p__('button', 'Dashboard')} %}
+        
+        <div class="flex gap-4 justify-between items-center mt-4">
+            <div>
+                <h1 class="flex items-center gap-2">
+                    <i class="ti ti-presentation text-primary"></i>
+                    {{ p__('heading', 'AI Presentation Generator') }}
+                </h1>
+                <p class="text-content-dimmed mt-2">
+                    {{ __('Create professional presentations powered by AI with web research, data visualization, and smart design') }}
+                </p>
+            </div>
+            
+            <button type="button" @click="showCreateModal = true" class="button button-lg">
+                <i class="ti ti-sparkles"></i>
+                {{ p__('button', 'Create with AI') }}
+            </button>
+        </div>
+    </div>
+    
+    {# Feature Highlights #}
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+        <div class="box text-center">
+            <i class="ti ti-world-search text-4xl text-primary mb-2"></i>
+            <h3 class="font-medium">{{ __('Web Research') }}</h3>
+            <p class="text-sm text-content-dimmed">{{ __('AI searches the web for latest data') }}</p>
+        </div>
+        <div class="box text-center">
+            <i class="ti ti-chart-bar text-4xl text-secondary mb-2"></i>
+            <h3 class="font-medium">{{ __('Data Viz') }}</h3>
+            <p class="text-sm text-content-dimmed">{{ __('Auto-generated charts and graphs') }}</p>
+        </div>
+        <div class="box text-center">
+            <i class="ti ti-photo-ai text-4xl text-accent mb-2"></i>
+            <h3 class="font-medium">{{ __('Smart Images') }}</h3>
+            <p class="text-sm text-content-dimmed">{{ __('AI suggests relevant visuals') }}</p>
+        </div>
+        <div class="box text-center">
+            <i class="ti ti-file-export text-4xl text-success mb-2"></i>
+            <h3 class="font-medium">{{ __('Export Anywhere') }}</h3>
+            <p class="text-sm text-content-dimmed">{{ __('PDF, PPTX, or HTML formats') }}</p>
+        </div>
+    </div>
+    
+    {# Slides Grid #}
+    <div class="mt-8">
+        <template x-if="slides.length === 0">
+            <div class="text-center py-16 box">
+                <div class="inline-block p-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white mb-6">
+                    <i class="ti ti-presentation text-6xl"></i>
+                </div>
+                <h3 class="text-2xl font-medium mb-2">{{ __('Create Your First AI Presentation') }}</h3>
+                <p class="text-content-dimmed mb-6 max-w-md mx-auto">
+                    {{ __('Use AI to research, design, and create professional presentations in minutes') }}
+                </p>
+                <button type="button" @click="showCreateModal = true" class="button button-lg">
+                    <i class="ti ti-sparkles"></i>
+                    {{ p__('button', 'Get Started') }}
+                </button>
+            </div>
+        </template>
+        
+        <template x-if="slides.length > 0">
+            <div>
+                <h2 class="text-xl font-medium mb-4">{{ __('Your Presentations') }}</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <template x-for="slide in slides" :key="slide.id">
+                        <a :href="'/app/slides/' + slide.id" 
+                           class="box hover:shadow-lg transition-all group relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            
+                            <div class="relative">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="avatar bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                                        <i class="ti ti-presentation"></i>
+                                    </div>
+                                    <span class="text-xs text-content-dimmed" 
+                                          x-text="new Date(slide.created_at * 1000).toLocaleDateString()"></span>
+                                </div>
+                                
+                                <h3 class="font-medium line-clamp-2 mb-3" x-text="slide.title"></h3>
+                                
+                                <div class="flex items-center gap-4 text-sm text-content-dimmed">
+                                    <span class="flex items-center gap-1">
+                                        <i class="ti ti-layers-intersect"></i>
+                                        <span x-text="(slide.slide_count || 0) + ' slides'"></span>
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <i class="ti ti-palette"></i>
+                                        <span x-text="slide.theme || 'professional'"></span>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    </template>
+                </div>
+            </div>
+        </template>
+    </div>
+    
+    {# Enhanced Create Modal #}
+    <div x-show="showCreateModal" x-cloak @click.self="showCreateModal = false" 
+         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <div class="bg-main max-w-4xl w-full rounded-lg shadow-xl my-8">
+            <div class="p-6 border-b border-line-dimmed bg-gradient-to-r from-purple-500/10 to-pink-500/10">
+                <h2 class="text-2xl font-semibold flex items-center gap-2">
+                    <i class="ti ti-sparkles text-primary"></i>
+                    {{ __('Create AI-Powered Presentation') }}
+                </h2>
+                <p class="text-sm text-content-dimmed mt-1">
+                    {{ __('AI will research your topic and create a professional presentation') }}
+                </p>
+            </div>
+            
+            <div class="p-6 space-y-6">
+                {# Quick Presets #}
+                <template x-if="presets.length > 0">
+                    <div>
+                        <label class="text-sm font-medium text-content-dimmed mb-3 block">
+                            {{ p__('label', '✨ Quick Start with a Preset') }}
+                        </label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            <template x-for="preset in presets.slice(0, 6)" :key="preset.id">
+                                <button type="button" 
+                                        @click="selectPreset(preset)"
+                                        class="text-left p-4 rounded-lg border-2 border-line hover:border-primary transition-all group">
+                                    <div class="flex items-start gap-3">
+                                        <i :class="'ti ti-' + preset.icon" 
+                                           class="text-2xl text-primary group-hover:scale-110 transition-transform"></i>
+                                        <div class="flex-1 min-w-0">
+                                            <h4 class="font-medium text-sm" x-text="preset.title"></h4>
+                                            <p class="text-xs text-content-dimmed line-clamp-2 mt-1" 
+                                               x-text="preset.description"></p>
+                                        </div>
+                                    </div>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+                
+                {# Prompt Input #}
+                <div>
+                    <label for="prompt" class="text-sm font-medium text-content-dimmed mb-2 block">
+                        {{ p__('label', '📝 What\'s your presentation about?') }}
+                    </label>
+                    <textarea 
+                        id="prompt"
+                        x-model="prompt"
+                        rows="4"
+                        class="input"
+                        placeholder="{{ __('Example: Create a quarterly business review presentation for Q4 2024, including revenue growth, key metrics, customer acquisition, challenges faced, and goals for Q1 2025') }}"
+                    ></textarea>
+                    <p class="text-xs text-content-dimmed mt-1">
+                        {{ __('Be specific! The more details you provide, the better the AI can tailor the presentation.') }}
+                    </p>
+                </div>
+                
+                {# Options Grid #}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {# Model Selection #}
+                    <div>
+                        <label class="text-sm font-medium text-content-dimmed mb-2 block">
+                            {{ p__('label', 'AI Model') }}
+                        </label>
+                        <select x-model="selectedModel" class="input">
+                            <template x-for="service in services" :key="service.title">
+                                <optgroup :label="service.title">
+                                    <template x-for="model in service.models" :key="model.value">
+                                        <option :value="model.value" x-text="model.label"></option>
+                                    </template>
+                                </optgroup>
+                            </template>
+                        </select>
+                    </div>
+                    
+                    {# Slide Count #}
+                    <div>
+                        <label for="slide_count" class="text-sm font-medium text-content-dimmed mb-2 block">
+                            {{ p__('label', 'Number of Slides') }}
+                        </label>
+                        <input type="number" id="slide_count" x-model.number="slideCount" 
+                               min="5" max="20" class="input">
+                    </div>
+                    
+                    {# Theme #}
+                    <div>
+                        <label for="theme" class="text-sm font-medium text-content-dimmed mb-2 block">
+                            {{ p__('label', 'Theme') }}
+                        </label>
+                        <select id="theme" x-model="theme" class="input">
+                            <option value="professional">🎩 {{ __('Professional') }}</option>
+                            <option value="creative">🎨 {{ __('Creative') }}</option>
+                            <option value="minimal">✨ {{ __('Minimal') }}</option>
+                            <option value="dark">🌙 {{ __('Dark') }}</option>
+                            <option value="colorful">🌈 {{ __('Colorful') }}</option>
+                        </select>
+                    </div>
+                    
+                    {# Template #}
+                    <div>
+                        <label for="template" class="text-sm font-medium text-content-dimmed mb-2 block">
+                            {{ p__('label', 'Template') }}
+                        </label>
+                        <select id="template" x-model="template" class="input">
+                            <option value="modern">{{ __('Modern') }}</option>
+                            <option value="classic">{{ __('Classic') }}</option>
+                            <option value="business">{{ __('Business') }}</option>
+                            <option value="academic">{{ __('Academic') }}</option>
+                            <option value="startup">{{ __('Startup') }}</option>
+                        </select>
+                    </div>
+                </div>
+                
+                {# Advanced Options #}
+                <div class="space-y-3">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" x-model="enableWebSearch" class="checkbox">
+                        <span class="text-sm">
+                            <i class="ti ti-world-search text-primary"></i>
+                            {{ __('Enable Web Research - AI will search the internet for latest information') }}
+                        </span>
+                    </label>
+                    
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" x-model="includeImages" class="checkbox">
+                        <span class="text-sm">
+                            <i class="ti ti-photo-ai text-secondary"></i>
+                            {{ __('Include Image Suggestions - AI will suggest relevant images') }}
+                        </span>
+                    </label>
+                    
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" x-model="includeCharts" class="checkbox">
+                        <span class="text-sm">
+                            <i class="ti ti-chart-bar text-accent"></i>
+                            {{ __('Include Data Visualization - Add charts and graphs where relevant') }}
+                        </span>
+                    </label>
+                </div>
+                
+                {# Progress Indicators #}
+                <template x-if="isCreating">
+                    <div class="space-y-3 p-4 bg-intermediate rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="ti ti-loader-2 animate-spin text-primary"></i>
+                            <span class="font-medium">{{ __('Creating your presentation...') }}</span>
+                        </div>
+                        <template x-if="searchProgress">
+                            <p class="text-sm text-content-dimmed" x-text="searchProgress"></p>
+                        </template>
+                        <template x-if="generationProgress">
+                            <p class="text-sm text-content-dimmed" x-text="generationProgress"></p>
+                        </template>
+                        <div class="w-full bg-line rounded-full h-2">
+                            <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full animate-pulse" 
+                                 style="width: 60%"></div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            
+            <div class="p-6 border-t border-line-dimmed flex justify-end gap-2">
+                <button type="button" @click="showCreateModal = false" 
+                        :disabled="isCreating"
+                        class="button button-dimmed">
+                    {{ p__('button', 'Cancel') }}
+                </button>
+                <button type="button" 
+                        @click="createSlide()" 
+                        :disabled="!prompt || isCreating"
+                        class="button bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                    <template x-if="!isCreating">
+                        <span class="flex items-center gap-2">
+                            <i class="ti ti-sparkles"></i>
+                            {{ p__('button', 'Create Presentation') }}
+                        </span>
+                    </template>
+                    <template x-if="isCreating">
+                        <span class="flex items-center gap-2">
+                            <i class="ti ti-loader-2 animate-spin"></i>
+                            {{ p__('button', 'Creating...') }}
+                        </span>
+                    </template>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+

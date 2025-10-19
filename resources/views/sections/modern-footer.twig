@@ -1,0 +1,166 @@
+{# Modern Footer #}
+<footer class="mt-auto">
+	<div class="border-t border-white/5">
+		<div class="container mx-auto px-4 py-8">
+			<div class="grid md:grid-cols-4 gap-8">
+				{# Brand Section #}
+				<div class="md:col-span-2">
+					<div class="flex items-center gap-3 mb-4">
+						<img src="{{ option.brand.logo_dark ?? '/assets/logo-light.svg' }}" 
+							 alt="{{ option.site.name ?? 'Logo' }}" 
+							 class="hidden dark:block h-8 object-contain">
+						<img src="{{ option.brand.logo ?? '/assets/logo-dark.svg' }}" 
+							 alt="{{ option.site.name ?? 'Logo' }}" 
+							 class="block dark:hidden h-8 object-contain">
+					</div>
+					<p class="text-sm text-content-dimmed mb-4 max-w-md">
+						{{ __('Empowering creativity with AI. Create amazing content, images, and more with our advanced AI tools.') }}
+					</p>
+					
+					{# Social Links #}
+					<div class="flex gap-2">
+						{% set social_links = [
+							{ icon: 'ti-brand-twitter', url: '#', label: 'Twitter' },
+							{ icon: 'ti-brand-facebook', url: '#', label: 'Facebook' },
+							{ icon: 'ti-brand-instagram', url: '#', label: 'Instagram' },
+							{ icon: 'ti-brand-linkedin', url: '#', label: 'LinkedIn' }
+						] %}
+						
+						{% for link in social_links %}
+							<a href="{{ link.url }}" 
+							   class="w-10 h-10 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+							   aria-label="{{ link.label }}">
+								<i class="ti {{ link.icon }}"></i>
+							</a>
+						{% endfor %}
+					</div>
+				</div>
+
+				{# Quick Links #}
+				<div>
+					<h3 class="font-semibold mb-4">{{ __('Quick Links') }}</h3>
+					<ul class="space-y-2">
+						<li>
+							<a href="app" class="text-sm text-content-dimmed hover:text-content transition-colors">
+								{{ __('Dashboard') }}
+							</a>
+						</li>
+						<li>
+							<a href="app/writer" class="text-sm text-content-dimmed hover:text-content transition-colors">
+								{{ __('AI Writer') }}
+							</a>
+						</li>
+						<li>
+							<a href="app/imagine" class="text-sm text-content-dimmed hover:text-content transition-colors">
+								{{ __('Image Generator') }}
+							</a>
+						</li>
+						<li>
+							<a href="app/chat" class="text-sm text-content-dimmed hover:text-content transition-colors">
+								{{ __('AI Chat') }}
+							</a>
+						</li>
+					</ul>
+				</div>
+
+				{# Support #}
+				<div>
+					<h3 class="font-semibold mb-4">{{ __('Support') }}</h3>
+					<ul class="space-y-2">
+						<li>
+							<a href="#" class="text-sm text-content-dimmed hover:text-content transition-colors">
+								{{ __('Help Center') }}
+							</a>
+						</li>
+						<li>
+							<a href="#" class="text-sm text-content-dimmed hover:text-content transition-colors">
+								{{ __('Documentation') }}
+							</a>
+						</li>
+						<li>
+							<a href="#" class="text-sm text-content-dimmed hover:text-content transition-colors">
+								{{ __('Contact Us') }}
+							</a>
+						</li>
+						<li>
+							<a href="#" class="text-sm text-content-dimmed hover:text-content transition-colors">
+								{{ __('API Reference') }}
+							</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			{# Bottom Bar #}
+			<div class="border-t border-white/5 mt-8 pt-8">
+				<div class="flex flex-col md:flex-row justify-between items-center gap-4">
+					<div class="text-sm text-content-dimmed text-center md:text-left">
+						© {{ 'now'|date('Y') }} {{ option.site.name ?? 'AI Platform' }}. {{ __('All rights reserved.') }}
+					</div>
+					
+					<div class="flex gap-6 text-sm">
+						<a href="#" class="text-content-dimmed hover:text-content transition-colors">
+							{{ __('Privacy Policy') }}
+						</a>
+						<a href="#" class="text-content-dimmed hover:text-content transition-colors">
+							{{ __('Terms of Service') }}
+						</a>
+						<a href="#" class="text-content-dimmed hover:text-content transition-colors">
+							{{ __('Cookie Policy') }}
+						</a>
+					</div>
+				</div>
+			</div>
+
+			{# Floating Action Button for Feedback #}
+			<div class="fixed bottom-6 right-6 z-30">
+				<button type="button" 
+						class="w-14 h-14 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl transform hover:scale-110 transition-all flex items-center justify-center group"
+						x-data
+						@click="$dispatch('open-feedback')">
+					<i class="ti ti-message-circle text-2xl group-hover:rotate-12 transition-transform"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+</footer>
+
+{# Feedback Modal #}
+<div x-data="{ open: false }" @open-feedback.window="open = true">
+	<div x-show="open" 
+		 x-transition.opacity
+		 class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+		 @click="open = false">
+	</div>
+	
+	<div x-show="open" 
+		 x-transition
+		 class="fixed bottom-20 right-6 w-96 max-w-[calc(100vw-3rem)] z-50">
+		<div class="glass-morphism rounded-2xl shadow-2xl overflow-hidden">
+			<div class="p-6">
+				<h3 class="text-lg font-semibold mb-4">{{ __('Send us feedback') }}</h3>
+				
+				<form @submit.prevent="alert('Feedback submitted!'); open = false">
+					<textarea 
+						placeholder="{{ __('Tell us what you think...') }}"
+						class="w-full p-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-purple-500 resize-none"
+						rows="4"
+						required>
+					</textarea>
+					
+					<div class="flex gap-3 mt-4">
+						<button type="button" 
+								class="flex-1 px-4 py-2 rounded-lg border border-white/10 hover:bg-white/5 transition-colors"
+								@click="open = false">
+							{{ __('Cancel') }}
+						</button>
+						<button type="submit" 
+								class="flex-1 btn-modern">
+							{{ __('Send Feedback') }}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

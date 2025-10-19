@@ -1,0 +1,113 @@
+{# Modern Top Bar for Desktop #}
+<div class="hidden lg:block">
+	<div class="h-16 flex items-center justify-between px-8 border-b border-white/5">
+		{# Breadcrumb #}
+		<div class="flex items-center gap-2 text-sm">
+			<a href="/app" class="text-content-dimmed hover:text-content transition-colors">
+				<i class="ti ti-home"></i>
+			</a>
+			
+			{% if breadcrumb is defined %}
+				{% for item in breadcrumb %}
+					<i class="ti ti-chevron-right text-xs text-content-dimmed"></i>
+					{% if item.url is defined %}
+						<a href="{{ item.url }}" class="text-content-dimmed hover:text-content transition-colors">
+							{{ item.label }}
+						</a>
+					{% else %}
+						<span class="text-content font-medium">{{ item.label }}</span>
+					{% endif %}
+				{% endfor %}
+			{% endif %}
+		</div>
+
+		{# Actions #}
+		<div class="flex items-center gap-4">
+			{# Search #}
+			<button type="button" 
+					class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm"
+					@click="$dispatch('open-search')">
+				<i class="ti ti-search"></i>
+				<span class="text-content-dimmed">{{ __('Search') }}</span>
+				<kbd class="ml-2 px-1.5 py-0.5 text-xs rounded bg-white/10">⌘K</kbd>
+			</button>
+
+			{# Notifications #}
+			<div class="relative" x-data="{ open: false, count: 3 }">
+				<button type="button" 
+						class="relative w-10 h-10 rounded-lg flex items-center justify-center hover:bg-white/5 transition-colors"
+						@click="open = !open">
+					<i class="ti ti-bell text-xl"></i>
+					<template x-if="count > 0">
+						<span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+							<span x-text="count"></span>
+						</span>
+					</template>
+				</button>
+
+				{# Notifications Dropdown #}
+				<div x-show="open" 
+					 x-transition
+					 @click.outside="open = false"
+					 class="absolute right-0 top-full mt-2 w-80 glass-morphism rounded-xl shadow-xl overflow-hidden">
+					<div class="p-4 border-b border-white/10">
+						<h3 class="font-semibold">{{ __('Notifications') }}</h3>
+					</div>
+					<div class="max-h-96 overflow-y-auto">
+						<div class="p-4 text-center text-sm text-content-dimmed">
+							{{ __('No new notifications') }}
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{# Quick Actions #}
+			<div class="h-8 w-px bg-white/10"></div>
+			
+			<button type="button" 
+					class="btn-modern text-sm"
+					@click="modal.open('quick-create')">
+				<i class="ti ti-plus"></i>
+				<span class="hidden xl:inline">{{ __('Create') }}</span>
+			</button>
+		</div>
+	</div>
+</div>
+
+{# Global Search Modal #}
+<div x-data="{ open: false }" 
+	 @open-search.window="open = true"
+	 @keydown.escape.window="open = false"
+	 @keydown.cmd.k.window.prevent="open = true">
+	
+	<div x-show="open" 
+		 x-transition.opacity
+		 class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+		 @click="open = false">
+	</div>
+	
+	<div x-show="open" 
+		 x-transition
+		 class="fixed top-20 left-1/2 -translate-x-1/2 w-full max-w-2xl z-50">
+		<div class="glass-morphism rounded-2xl shadow-2xl overflow-hidden">
+			<div class="p-4">
+				<div class="relative">
+					<i class="ti ti-search absolute left-4 top-1/2 -translate-y-1/2 text-xl text-content-dimmed"></i>
+					<input type="text" 
+						   placeholder="{{ __('Search for tools, documents, or ask a question...') }}"
+						   class="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-purple-500"
+						   x-ref="searchInput"
+						   @click.stop
+						   x-init="$watch('open', value => value && $nextTick(() => $refs.searchInput.focus()))">
+				</div>
+			</div>
+			
+			{# Search Results #}
+			<div class="border-t border-white/10 p-4">
+				<div class="text-sm text-content-dimmed text-center py-8">
+					{{ __('Start typing to search...') }}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

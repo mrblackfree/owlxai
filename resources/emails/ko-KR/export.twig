@@ -1,0 +1,33 @@
+{% extends "@emails/layout.twig" %}
+
+{% block subject %}
+	내보내기가 완료되었습니다 - {{ option.site.name ?? 'OWLxAI' }}
+{% endblock %}
+
+{% block content %}
+	<div>
+		회원님께,
+
+		<p>
+			좋은 소식입니다! 요청하신 내보내기가 성공적으로 완료되었습니다.
+		</p>
+
+		<p>
+			내보낸 파일이 이 이메일에 첨부되어 있습니다. 다운로드하여 보관하실 수 있습니다.
+		</p>
+
+		<p>
+			궁금한 점이 있거나 도움이 필요하시면 언제든지 고객 지원팀에 문의해 주세요.
+		</p>
+
+		<p>
+			감사합니다.
+			<br/>
+
+			<strong>
+				{{ option.site.name ?? 'OWLxAI' }}
+				팀 드림
+			</strong>
+		</p>
+	</div>
+{% endblock %}

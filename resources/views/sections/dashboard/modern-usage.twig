@@ -1,0 +1,120 @@
+<section class="modern-card" data-density="comfortable">
+	<div class="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-6">
+		<div>
+			<h2 class="text-xl font-semibold flex items-center gap-2">
+				<div class="w-2 h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600"></div>
+				{{ p__('heading', 'Credit Usage Analytics') }}
+			</h2>
+			<p class="text-sm text-content-dimmed mt-1">{{ __('Track your AI usage patterns') }}</p>
+		</div>
+
+		<div class="flex items-center gap-3">
+			<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
+				<i class="ti ti-calendar text-sm"></i>
+				<span class="text-sm font-medium">{{ p__('button', 'Last 30 days') }}</span>
+			</div>
+			
+			<div class="relative" x-data="{ open: false }" @click.outside="open = false">
+				<button class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors" 
+						@click="open = !open">
+					<i class="ti ti-dots-vertical"></i>
+				</button>
+
+				<div x-show="open" 
+					 x-transition
+					 class="absolute right-0 top-full mt-2 w-48 glass-morphism rounded-xl shadow-xl overflow-hidden z-10">
+					<ul class="py-1">
+						<li>
+							<a href="app/logs/usage" 
+							   class="flex gap-3 items-center px-4 py-2.5 hover:bg-white/10 transition-colors">
+								<i class="ti ti-chart-line"></i>
+								{{ p__('button', 'Detailed Usage Log') }}
+							</a>
+						</li>
+						<li>
+							<a href="#" 
+							   class="flex gap-3 items-center px-4 py-2.5 hover:bg-white/10 transition-colors"
+							   @click.prevent="window.print()">
+								<i class="ti ti-download"></i>
+								{{ p__('button', 'Export Report') }}
+							</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{# Chart Container with Enhanced Styling #}
+	<div class="relative">
+		<x-chart :set="JSON.stringify(usageDataset)" class="block">
+			<div chart class="h-72"></div>
+		</x-chart>
+		
+		{# Gradient Overlay for Chart #}
+		<div class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-main via-main/50 to-transparent pointer-events-none"></div>
+	</div>
+
+	{# Usage Stats Grid #}
+	<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-white/10">
+		{% set stats = [
+			{
+				'label': __('Total Used'),
+				'value': workspace.used_credit_count|default(0),
+				'icon': 'ti-chart-bar',
+				'color': 'from-blue-500 to-cyan-500'
+			},
+			{
+				'label': __('Daily Average'),
+				'value': (workspace.used_credit_count|default(0) / 30)|round,
+				'icon': 'ti-trending-up',
+				'color': 'from-purple-500 to-pink-500'
+			},
+			{
+				'label': __('Peak Usage'),
+				'value': workspace.peak_usage|default(workspace.used_credit_count|default(0) / 10)|round,
+				'icon': 'ti-arrow-big-up',
+				'color': 'from-orange-500 to-red-500'
+			},
+			{
+				'label': __('Efficiency'),
+				'value': '92%',
+				'icon': 'ti-sparkles',
+				'color': 'from-green-500 to-teal-500'
+			}
+		] %}
+		
+		{% for stat in stats %}
+			<div class="text-center">
+				<div class="inline-flex p-2 rounded-lg bg-gradient-to-br {{ stat.color }} mb-2">
+					<i class="ti {{ stat.icon }} text-white"></i>
+				</div>
+				<div class="text-2xl font-bold">{{ stat.value }}</div>
+				<div class="text-xs text-content-dimmed">{{ stat.label }}</div>
+			</div>
+		{% endfor %}
+	</div>
+</section>
+
+{# Enhanced Chart Styles #}
+<style>
+	/* Customize chart appearance */
+	[chart] .apexcharts-canvas {
+		font-family: inherit !important;
+	}
+	
+	.apexcharts-tooltip {
+		background: rgba(0, 0, 0, 0.9) !important;
+		backdrop-filter: blur(10px);
+		border: 1px solid rgba(255, 255, 255, 0.1) !important;
+		border-radius: 12px !important;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+	}
+	
+	.apexcharts-xaxistooltip {
+		background: rgba(0, 0, 0, 0.9) !important;
+		backdrop-filter: blur(10px);
+		border: 1px solid rgba(255, 255, 255, 0.1) !important;
+		border-radius: 8px !important;
+	}
+</style>

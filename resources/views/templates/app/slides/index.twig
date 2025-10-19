@@ -1,0 +1,274 @@
+{% extends "/layouts/main.twig" %}
+
+{% set active_menu = '/app/slides' %}
+{% set xdata = 'slides' %}
+{% block title p__('title', 'Slides')|title %}
+
+{% block template %}
+<div x-data="{
+    slides: [],
+    services: {{ services|json_encode }},
+    presets: {{ presets|json_encode }},
+    selectedService: null,
+    selectedModel: null,
+    showCreateModal: false,
+    isCreating: false,
+    prompt: '',
+    theme: 'professional',
+    template: 'modern',
+    
+    init() {
+        if (this.services.length > 0) {
+            this.selectedService = this.services[0].title;
+            this.selectedModel = this.services[0].models[0].value;
+        }
+        this.fetchSlides();
+    },
+    
+    async fetchSlides() {
+        try {
+            const response = await api.get('/api/library/items?type=slide');
+            if (response.data) {
+                this.slides = response.data;
+            }
+        } catch (error) {
+            console.error('Failed to fetch slides:', error);
+        }
+    },
+    
+    async createSlide() {
+        if (!this.prompt || this.isCreating) return;
+        
+        this.isCreating = true;
+        try {
+            const response = await fetch('/api/slides', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    prompt: this.prompt,
+                    model: this.selectedModel,
+                    theme: this.theme,
+                    template: this.template
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to create slide');
+            }
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+                        if (data === '[DONE]') continue;
+                        
+                        try {
+                            const event = JSON.parse(data);
+                            if (event.type === 'slide' && event.data && event.data.id) {
+                                window.location.href = `/app/slides/${event.data.id}`;
+                                return;
+                            }
+                        } catch (e) {
+                            console.error('Failed to parse event:', e);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to create slide:', error);
+            alert('Failed to create slide. Please try again.');
+        } finally {
+            this.isCreating = false;
+        }
+    }
+}">
+    {# Header #}
+    <div>
+        {% include "snippets/back.twig" with {link: 'app', label: p__('button', 'Dashboard')} %}
+        
+        <div class="flex gap-4 justify-between items-center mt-4">
+            <div>
+                <h1>{{ p__('heading', 'Slides') }}</h1>
+                <p class="text-content-dimmed">
+                    {{ __('Create professional presentations with AI') }}
+                </p>
+            </div>
+            
+            <button type="button" @click="showCreateModal = true" class="button">
+                <i class="ti ti-plus"></i>
+                {{ p__('button', 'Create Slide') }}
+            </button>
+        </div>
+    </div>
+    
+    {# Slides Grid #}
+    <div class="mt-8">
+        <template x-if="slides.length === 0">
+            <div class="text-center py-16 box">
+                <i class="ti ti-presentation text-6xl text-content-dimmed mb-4"></i>
+                <h3 class="text-lg font-medium mb-2">{{ __('No slides yet') }}</h3>
+                <p class="text-content-dimmed mb-6">{{ __('Create your first AI-powered presentation') }}</p>
+                <button type="button" @click="showCreateModal = true" class="button">
+                    <i class="ti ti-plus"></i>
+                    {{ p__('button', 'Create Slide') }}
+                </button>
+            </div>
+        </template>
+        
+        <template x-if="slides.length > 0">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <template x-for="slide in slides" :key="slide.id">
+                    <a :href="'/app/slides/' + slide.id" class="box hover:border-line-dimmed transition-colors">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="avatar bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                                <i class="ti ti-presentation"></i>
+                            </div>
+                            <span class="text-xs text-content-dimmed" x-text="new Date(slide.created_at * 1000).toLocaleDateString()"></span>
+                        </div>
+                        
+                        <h3 class="font-medium line-clamp-2 mb-2" x-text="slide.title"></h3>
+                        
+                        <div class="flex items-center gap-4 text-sm text-content-dimmed">
+                            <span class="flex items-center gap-1">
+                                <i class="ti ti-layers-intersect"></i>
+                                <span x-text="slide.slide_count + ' slides'"></span>
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <i class="ti ti-palette"></i>
+                                <span x-text="slide.theme || 'professional'"></span>
+                            </span>
+                        </div>
+                    </a>
+                </template>
+            </div>
+        </template>
+    </div>
+    
+    {# Create Modal #}
+    <div x-show="showCreateModal" x-cloak @click.self="showCreateModal = false" 
+         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div class="bg-main max-w-2xl w-full rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-line-dimmed">
+                <h2 class="text-xl font-semibold">{{ __('Create New Presentation') }}</h2>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                {# Model Selection #}
+                <div>
+                    <label class="text-sm font-medium text-content-dimmed mb-2 block">
+                        {{ p__('label', 'AI Model') }}
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <template x-for="service in services" :key="service.title">
+                            <div>
+                                <label class="text-xs text-content-dimmed mb-1 block" x-text="service.title"></label>
+                                <select x-model="selectedModel" class="input">
+                                    <template x-for="model in service.models" :key="model.value">
+                                        <option :value="model.value" x-text="model.label"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                
+                {# Prompt #}
+                <div>
+                    <label for="prompt" class="text-sm font-medium text-content-dimmed mb-2 block">
+                        {{ p__('label', 'Presentation Topic') }}
+                    </label>
+                    <textarea 
+                        id="prompt"
+                        x-model="prompt"
+                        rows="4"
+                        class="input"
+                        placeholder="{{ __('Describe what you want your presentation to be about...') }}"
+                    ></textarea>
+                </div>
+                
+                {# Theme Selection #}
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="theme" class="text-sm font-medium text-content-dimmed mb-2 block">
+                            {{ p__('label', 'Theme') }}
+                        </label>
+                        <select id="theme" x-model="theme" class="input">
+                            <option value="professional">{{ __('Professional') }}</option>
+                            <option value="creative">{{ __('Creative') }}</option>
+                            <option value="minimal">{{ __('Minimal') }}</option>
+                            <option value="dark">{{ __('Dark') }}</option>
+                            <option value="colorful">{{ __('Colorful') }}</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="template" class="text-sm font-medium text-content-dimmed mb-2 block">
+                            {{ p__('label', 'Template') }}
+                        </label>
+                        <select id="template" x-model="template" class="input">
+                            <option value="modern">{{ __('Modern') }}</option>
+                            <option value="classic">{{ __('Classic') }}</option>
+                            <option value="business">{{ __('Business') }}</option>
+                            <option value="academic">{{ __('Academic') }}</option>
+                            <option value="startup">{{ __('Startup') }}</option>
+                        </select>
+                    </div>
+                </div>
+                
+                {# Presets #}
+                <template x-if="presets.length > 0">
+                    <div>
+                        <label class="text-sm font-medium text-content-dimmed mb-2 block">
+                            {{ p__('label', 'Or choose a preset') }}
+                        </label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <template x-for="preset in presets" :key="preset.id">
+                                <button type="button" 
+                                        @click="prompt = preset.template"
+                                        class="text-left p-3 rounded-lg border border-line hover:border-line-dimmed transition-colors">
+                                    <h4 class="font-medium text-sm" x-text="preset.title"></h4>
+                                    <p class="text-xs text-content-dimmed line-clamp-2" x-text="preset.description"></p>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            
+            <div class="p-6 border-t border-line-dimmed flex justify-end gap-2">
+                <button type="button" @click="showCreateModal = false" class="button button-dimmed">
+                    {{ p__('button', 'Cancel') }}
+                </button>
+                <button type="button" 
+                        @click="createSlide()" 
+                        :disabled="!prompt || isCreating"
+                        class="button">
+                    <template x-if="!isCreating">
+                        <span>{{ p__('button', 'Create Presentation') }}</span>
+                    </template>
+                    <template x-if="isCreating">
+                        <span class="flex items-center gap-2">
+                            <i class="ti ti-loader-2 animate-spin"></i>
+                            {{ p__('button', 'Creating...') }}
+                        </span>
+                    </template>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

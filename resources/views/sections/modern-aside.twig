@@ -1,0 +1,234 @@
+<aside class="sticky z-20 top-0 hidden lg:flex flex-col h-screen shrink-0 w-72 glass-morphism-dark backdrop-blur-xl border-r border-white/10 transition-all duration-300 group-data-collapsed/html:w-20 group-data-collapsed/html:-ms-20" x-data="{ activeTooltip: null }">
+	{# Header #}
+	<div class="p-6 border-b border-white/10">
+		<div class="flex items-center justify-between">
+			<a href="{{ view_namespace }}" class="block transition-opacity hover:opacity-80">
+				<img src="{{ option.brand.logo_dark ?? '/assets/logo-light.svg' }}" 
+					 alt="{{ option.site.name ?? 'Logo' }}" 
+					 class="hidden dark:block h-8 object-contain object-left group-data-collapsed/html:hidden">
+				<img src="{{ option.brand.logo ?? '/assets/logo-dark.svg' }}" 
+					 alt="{{ option.site.name ?? 'Logo' }}" 
+					 class="block dark:hidden h-8 object-contain object-left group-data-collapsed/html:hidden">
+				
+				{# Icon for collapsed state #}
+				<div class="hidden group-data-collapsed/html:block w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg">
+					{{ (option.site.name ?? 'AI')|slice(0, 1)|upper }}
+				</div>
+			</a>
+			
+			<div class="flex items-center gap-3 group-data-collapsed/html:hidden">
+				{# Theme Toggle #}
+				{% if option.color_scheme.modes is not defined or option.color_scheme.modes|length > 1 %}
+					<mode-switcher>
+						<button type="button" 
+								class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors"
+								@click.stop>
+							<i class="text-lg ti ti-moon dark:hidden"></i>
+							<i class="text-lg ti ti-sun hidden dark:block"></i>
+						</button>
+					</mode-switcher>
+				{% endif %}
+
+				{# Language Selector #}
+				<div class="relative" x-data="{ open: false }" @click.outside="open = false">
+					<button type="button" 
+							@click="open = !open" 
+							class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors">
+						<i class="text-lg ti ti-language"></i>
+					</button>
+
+					<div x-show="open" 
+						 x-transition
+						 class="absolute top-full right-0 mt-2 w-48 glass-morphism rounded-xl shadow-xl overflow-hidden">
+						<ul class="py-1">
+							<li>
+								<a href="/en-US" 
+								   class="block px-4 py-2.5 hover:bg-white/10 transition-colors {{ locale.code == 'en-US' ? 'bg-white/10 font-semibold' : '' }}" 
+								   @click.prevent="document.cookie = `locale=en-US; expires=${new Date(new Date().getTime()+1000*60*60*24*365).toGMTString()}; path=/`; window.location.reload();">
+									🇺🇸 English
+								</a>
+							</li>
+							<li>
+								<a href="/ko-KR" 
+								   class="block px-4 py-2.5 hover:bg-white/10 transition-colors {{ locale.code == 'ko-KR' ? 'bg-white/10 font-semibold' : '' }}" 
+								   @click.prevent="document.cookie = `locale=ko-KR; expires=${new Date(new Date().getTime()+1000*60*60*24*365).toGMTString()}; path=/`; window.location.reload();">
+									🇰🇷 한국어
+								</a>
+							</li>
+							<li>
+								<a href="/ja-JP" 
+								   class="block px-4 py-2.5 hover:bg-white/10 transition-colors {{ locale.code == 'ja-JP' ? 'bg-white/10 font-semibold' : '' }}" 
+								   @click.prevent="document.cookie = `locale=ja-JP; expires=${new Date(new Date().getTime()+1000*60*60*24*365).toGMTString()}; path=/`; window.location.reload();">
+									🇯🇵 日本語
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	{# Workspace Selector #}
+	{% include "/snippets/workspace/modern-menu.twig" %}
+
+	{# Navigation #}
+	<nav class="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+		{% set active_menu = active_menu ?? null %}
+		
+		{% if view_namespace == 'admin' %}
+			{% for key, section in nav.admin|filter((section,key) => key not in ['account', 'settings']) %}
+				{% if section.items|default([])|length > 0 %}
+					<div>
+						{% if section.label %}
+							<h4 class="px-3 mb-3 text-xs font-semibold text-content-dimmed uppercase tracking-wider group-data-collapsed/html:hidden">
+								{{ p__('nav', section.label) }}
+							</h4>
+						{% endif %}
+
+						<ul class="space-y-1">
+							{% for item in section.items %}
+								<li>
+									<a href="{{ item.url }}" 
+									   class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group/item
+											  {{ active_menu == item.url 
+												 ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white border border-white/20' 
+												 : 'hover:bg-white/5 hover:border-white/10 border border-transparent' }}"
+									   @mouseenter="activeTooltip = '{{ item.label }}'"
+									   @mouseleave="activeTooltip = null">
+										
+										{# Icon with gradient background #}
+										<div class="relative flex items-center justify-center w-10 h-10 rounded-xl shrink-0
+													{{ active_menu == item.url ? 'bg-gradient-to-br' : 'bg-white/5' }}"
+											 style="--tw-gradient-from: {{ item.from ?? '#667eea' }}; --tw-gradient-to: {{ item.to ?? item.from ?? '#764ba2' }}">
+											
+											{% if item.iconType.value == 'ti' %}
+												<i class="text-xl ti ti-{{ item.icon }} {{ active_menu == item.url ? 'text-white' : '' }}"></i>
+											{% elseif item.iconType.value == 'svg' %}
+												{{ item.icon|raw }}
+											{% elseif item.iconType.value == 'src' %}
+												<img src="{{ item.icon }}" alt="{{ item.label }}" class="w-6 h-6">
+											{% elseif item.iconType.value == 'include' %}
+												{% include item.icon %}
+											{% endif %}
+											
+											{# Active indicator #}
+											{% if active_menu == item.url %}
+												<div class="absolute -right-1 -top-1 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+											{% endif %}
+										</div>
+
+										<span class="font-medium group-data-collapsed/html:hidden">
+											{{ p__('nav', item.label) }}
+										</span>
+
+										{# Hover arrow #}
+										<i class="ti ti-chevron-right ml-auto opacity-0 group-hover/item:opacity-100 transition-opacity group-data-collapsed/html:hidden"></i>
+									</a>
+									
+									{# Tooltip for collapsed state #}
+									<div class="tooltip-modern left-full ml-2 top-1/2 -translate-y-1/2 px-3 py-2"
+										 :class="{ 'show': activeTooltip === '{{ item.label }}' && document.documentElement.dataset.collapsed }">
+										{{ p__('nav', item.label) }}
+									</div>
+								</li>
+							{% endfor %}
+						</ul>
+					</div>
+				{% endif %}
+			{% endfor %}
+		{% else %}
+			{# App Navigation #}
+			{% for key, section in nav.app|filter((section,key) => key not in [ 'secondary', 'account', 'workspace']) %}
+				{% if section.items|length > 0 %}
+					<div>
+						{% if section.label %}
+							<h4 class="px-3 mb-3 text-xs font-semibold text-content-dimmed uppercase tracking-wider group-data-collapsed/html:hidden">
+								{{ p__('nav', section.label) }}
+							</h4>
+						{% endif %}
+
+						<ul class="space-y-1">
+							{% for item in section.items %}
+								<li>
+									<a href="{{ item.url }}" 
+									   class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group/item relative
+											  {{ active_menu == item.url 
+												 ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white border border-white/20' 
+												 : 'hover:bg-white/5 hover:border-white/10 border border-transparent' }}
+											  {{ user.is_email_verified == false and option.site.email_verification_policy is defined and option.site.email_verification_policy == 'strict' 
+												 ? 'opacity-50 hover:opacity-100' : '' }}"
+									   @mouseenter="activeTooltip = '{{ item.label }}'"
+									   @mouseleave="activeTooltip = null">
+										
+										{# Icon with gradient background #}
+										<div class="relative flex items-center justify-center w-10 h-10 rounded-xl shrink-0
+													{{ active_menu == item.url ? 'bg-gradient-to-br' : 'bg-white/5' }}"
+											 style="--tw-gradient-from: {{ item.from ?? '#667eea' }}; --tw-gradient-to: {{ item.to ?? item.from ?? '#764ba2' }}">
+											
+											{% if item.iconType.value == 'ti' %}
+												<i class="text-xl ti ti-{{ item.icon }} {{ active_menu == item.url ? 'text-white' : '' }}"></i>
+											{% elseif item.iconType.value == 'svg' %}
+												{{ item.icon|raw }}
+											{% elseif item.iconType.value == 'src' %}
+												<img src="{{ item.icon }}" alt="{{ item.label }}" class="w-6 h-6">
+											{% elseif item.iconType.value == 'include' %}
+												{% include item.icon %}
+											{% endif %}
+											
+											{# Active/New indicator #}
+											{% if active_menu == item.url %}
+												<div class="absolute -right-1 -top-1 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+											{% endif %}
+										</div>
+
+										<span class="font-medium group-data-collapsed/html:hidden">
+											{{ p__('nav', item.label) }}
+										</span>
+
+										{# Lock icon for unverified emails #}
+										{% if user.is_email_verified == false and option.site.email_verification_policy is defined and option.site.email_verification_policy == 'strict' %}
+											<i class="ti ti-lock ml-auto group-data-collapsed/html:hidden"></i>
+										{% endif %}
+									</a>
+									
+									{# Tooltip for collapsed state #}
+									<div class="tooltip-modern left-full ml-2 top-1/2 -translate-y-1/2 px-3 py-2"
+										 :class="{ 'show': activeTooltip === '{{ item.label }}' && document.documentElement.dataset.collapsed }">
+										{{ p__('nav', item.label) }}
+									</div>
+								</li>
+							{% endfor %}
+						</ul>
+					</div>
+				{% endif %}
+			{% endfor %}
+		{% endif %}
+	</nav>
+
+	{# Footer Actions #}
+	<div class="p-4 border-t border-white/10 space-y-3">
+		{% if view_namespace == 'admin' %}
+			<a href="app" class="btn-modern w-full text-center justify-center group-data-collapsed/html:hidden">
+				{{ p__('button', 'View App') }}
+			</a>
+		{% elseif workspace.owner.id == user.id and (workspace.subscription == null or workspace.subscription.plan.price <= 0) %}
+			<a href="app/billing/plans" 
+			   class="relative block w-full px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium text-center transition-all hover:shadow-lg hover:shadow-purple-500/25 group-data-collapsed/html:px-3">
+				<span class="group-data-collapsed/html:hidden">{{ p__('button', 'Upgrade Plan') }}</span>
+				<i class="ti ti-rocket hidden group-data-collapsed/html:block text-xl"></i>
+				<div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+			</a>
+		{% endif %}
+
+		{# Account Menu #}
+		{% include "/snippets/modern-account-menu.twig" %}
+	</div>
+
+	{# Sidebar Toggle #}
+	<button type="button" 
+			class="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+			@click="document.documentElement.dataset.collapsed ? (delete document.documentElement.dataset.collapsed, delete localStorage.collapsed) : (document.documentElement.dataset.collapsed = localStorage.collapsed = true)">
+		<i class="ti ti-chevron-left text-xs group-data-collapsed/html:rotate-180 transition-transform"></i>
+	</button>
+</aside>

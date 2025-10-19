@@ -1,0 +1,120 @@
+{# Modern Workspace Menu #}
+{% if workspaces|length > 1 or user.role.value == 'admin' %}
+	<div class="px-4 py-3 border-b border-white/10">
+		<div class="relative" x-data="{ open: false }" @click.outside="open = false">
+			<button type="button" 
+					class="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors group"
+					@click="open = !open">
+				<div class="flex items-center gap-3 overflow-hidden">
+					<div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold text-sm shrink-0">
+						{{ workspace.name|slice(0, 1)|upper }}
+					</div>
+					<div class="text-left overflow-hidden group-data-collapsed/html:hidden">
+						<div class="text-sm font-medium truncate">{{ workspace.name }}</div>
+						<div class="text-xs text-content-dimmed truncate">
+							{% if workspace.subscription %}
+								{{ workspace.subscription.plan.title }}
+							{% else %}
+								{{ __('Free Plan') }}
+							{% endif %}
+						</div>
+					</div>
+				</div>
+				<i class="ti ti-chevron-down text-content-dimmed group-data-collapsed/html:hidden transition-transform"
+				   :class="{ 'rotate-180': open }"></i>
+			</button>
+
+			{# Dropdown Menu #}
+			<div x-show="open" 
+				 x-transition
+				 class="absolute left-0 right-0 top-full mt-2 glass-morphism rounded-xl shadow-xl overflow-hidden max-h-96 overflow-y-auto">
+				
+				{# Current Workspace Info #}
+				<div class="p-4 border-b border-white/10">
+					<div class="text-xs font-medium text-content-dimmed uppercase tracking-wider mb-2">
+						{{ __('Current Workspace') }}
+					</div>
+					<div class="flex items-center gap-3">
+						<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
+							{{ workspace.name|slice(0, 1)|upper }}
+						</div>
+						<div>
+							<div class="font-medium">{{ workspace.name }}</div>
+							<div class="text-xs text-content-dimmed">
+								{{ workspace.credit_count }} {{ __('credits remaining') }}
+							</div>
+						</div>
+					</div>
+				</div>
+
+				{# Other Workspaces #}
+				{% if workspaces|length > 1 %}
+					<div class="p-2">
+						{% for ws in workspaces %}
+							{% if ws.id != workspace.id %}
+								<form method="POST" action="workspace/{{ ws.id }}">
+									<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+									
+									<button type="submit" 
+											class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
+										<div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-sm font-semibold">
+											{{ ws.name|slice(0, 1)|upper }}
+										</div>
+										<div class="overflow-hidden">
+											<div class="text-sm font-medium truncate">{{ ws.name }}</div>
+											<div class="text-xs text-content-dimmed">
+												{% if ws.subscription %}
+													{{ ws.subscription.plan.title }}
+												{% else %}
+													{{ __('Free Plan') }}
+												{% endif %}
+											</div>
+										</div>
+										<i class="ti ti-arrow-right ml-auto text-content-dimmed"></i>
+									</button>
+								</form>
+							{% endif %}
+						{% endfor %}
+					</div>
+				{% endif %}
+
+				{# Actions #}
+				<div class="p-2 border-t border-white/10">
+					<button type="button" 
+							class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors"
+							@click="modal.open('workspace-create'); open = false">
+						<div class="w-8 h-8 rounded-lg border-2 border-dashed border-white/20 flex items-center justify-center">
+							<i class="ti ti-plus text-sm"></i>
+						</div>
+						<span class="text-sm font-medium">{{ __('Create New Workspace') }}</span>
+					</button>
+
+					{% if user.role.value == 'admin' %}
+						<a href="admin/workspaces" 
+						   class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors">
+							<div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+								<i class="ti ti-settings text-sm"></i>
+							</div>
+							<span class="text-sm font-medium">{{ __('Manage All Workspaces') }}</span>
+						</a>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</div>
+{% else %}
+	{# Single Workspace Display #}
+	<div class="px-4 py-3 border-b border-white/10 group-data-collapsed/html:px-2">
+		<div class="flex items-center gap-3">
+			<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shrink-0">
+				{{ workspace.name|slice(0, 1)|upper }}
+			</div>
+			<div class="overflow-hidden group-data-collapsed/html:hidden">
+				<div class="font-medium truncate">{{ workspace.name }}</div>
+				<div class="text-xs text-content-dimmed">
+					{{ workspace.credit_count }} {{ __('credits') }}
+				</div>
+			</div>
+		</div>
+	</div>
+{% endif %}

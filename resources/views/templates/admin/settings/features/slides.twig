@@ -1,0 +1,161 @@
+{% extends "/layouts/main.twig" %}
+{% set active_menu = '/admin/settings' %}
+
+{% set xdata = 'settings' %}
+{% block title p__('title', 'Slides configuration')|title %}
+
+{% block template %}
+	<div>
+		{% include "snippets/back.twig" with {link: 'admin/settings/features', label: 'Features'} %}
+
+		<h1 class="mt-4">{{ p__('heading', 'Slides configuration') }}</h1>
+	</div>
+
+	<x-form>
+		<form class="flex flex-col gap-8" @submit.prevent="submit" x-ref="form">
+			<div class="flex flex-col gap-2">
+				<section class="flex flex-col gap-6 box" data-density="comfortable">
+					<h2 class="col-span-2">{{ p__('heading', 'Configuration') }}</h2>
+
+					<div class="flex items-center justify-between p-3 rounded-lg bg-intermediate">
+						{{ p__('label', 'Slides tool') }}
+
+						<label class="inline-flex items-center gap-2 cursor-pointer">
+							<input type="checkbox" name="features[slides][is_enabled]" class="hidden peer" {{ option.features.slides.is_enabled is defined and option.features.slides.is_enabled ? 'checked' : '' }}>
+
+							<span class="h-6 w-10 rounded-3xl bg-line relative block peer-checked:bg-success transition-all after:h-5 after:w-5 after:top-0.5 after:absolute after:left-0 after:ms-0.5 after:transition-all after:rounded-full after:bg-white peer-checked:after:left-4"></span>
+
+							<span class="text-content-dimmed peer-checked:hidden">
+								{{ p__('input-value', 'Disabled') }}
+							</span>
+
+							<span class="hidden text-success peer-checked:inline">
+								{{ p__('input-value', 'Enabled') }}
+							</span>
+						</label>
+					</div>
+
+					<div>
+						<label for="features[slides][max_slides]">
+							{{ p__('label', 'Maximum slides per presentation') }}
+						</label>
+
+						<input type="number" id="features[slides][max_slides]" name="features[slides][max_slides]" class="input" placeholder="{{ __('Enter maximum number of slides') }}" value="{{ option.features.slides.max_slides is defined ? option.features.slides.max_slides : 20 }}" min="5" max="50">
+
+						<ul class="info mt-2">
+							<li>{{ __('Set the maximum number of slides that can be generated per presentation.') }}</li>
+						</ul>
+					</div>
+
+					<div>
+						<label for="features[slides][default_slide_count]">
+							{{ p__('label', 'Default slide count') }}
+						</label>
+
+						<input type="number" id="features[slides][default_slide_count]" name="features[slides][default_slide_count]" class="input" placeholder="{{ __('Enter default number of slides') }}" value="{{ option.features.slides.default_slide_count is defined ? option.features.slides.default_slide_count : 10 }}" min="5" max="20">
+
+						<ul class="info mt-2">
+							<li>{{ __('Set the default number of slides for new presentations.') }}</li>
+						</ul>
+					</div>
+
+					<div>
+						<label for="features[slides][allow_export]">
+							{{ p__('label', 'Allow export') }}
+						</label>
+
+						<div class="flex gap-4">
+							<label class="inline-flex items-center gap-2 cursor-pointer">
+								<input type="checkbox" name="features[slides][allow_pdf_export]" class="hidden peer" {{ option.features.slides.allow_pdf_export is not defined or option.features.slides.allow_pdf_export ? 'checked' : '' }}>
+								<span class="h-6 w-6 rounded-md border-2 border-line relative block peer-checked:bg-primary peer-checked:border-primary transition-all after:h-full after:w-full after:absolute after:left-0 after:top-0 after:flex after:items-center after:justify-center after:text-white after:content-['\ea5e'] after:font-tabler after:text-sm after:opacity-0 peer-checked:after:opacity-100"></span>
+								<span>{{ p__('label', 'PDF Export') }}</span>
+							</label>
+
+							<label class="inline-flex items-center gap-2 cursor-pointer">
+								<input type="checkbox" name="features[slides][allow_pptx_export]" class="hidden peer" {{ option.features.slides.allow_pptx_export is not defined or option.features.slides.allow_pptx_export ? 'checked' : '' }}>
+								<span class="h-6 w-6 rounded-md border-2 border-line relative block peer-checked:bg-primary peer-checked:border-primary transition-all after:h-full after:w-full after:absolute after:left-0 after:top-0 after:flex after:items-center after:justify-center after:text-white after:content-['\ea5e'] after:font-tabler after:text-sm after:opacity-0 peer-checked:after:opacity-100"></span>
+								<span>{{ p__('label', 'PPTX Export') }}</span>
+							</label>
+						</div>
+
+						<ul class="info mt-2">
+							<li>{{ __('Allow users to export presentations in PDF and PPTX formats.') }}</li>
+						</ul>
+					</div>
+
+					<div>
+						<label for="features[slides][themes]">
+							{{ p__('label', 'Available themes') }}
+						</label>
+
+						<div class="flex flex-wrap gap-2">
+							{% set themes = {
+								'professional': 'Professional',
+								'creative': 'Creative',
+								'minimal': 'Minimal',
+								'dark': 'Dark',
+								'colorful': 'Colorful'
+							} %}
+							
+							{% for key, label in themes %}
+								<label class="inline-flex items-center gap-2 cursor-pointer">
+									<input type="checkbox" name="features[slides][themes][{{ key }}]" class="hidden peer" 
+										{{ (option.features.slides.themes is not defined) or (option.features.slides.themes[key] is defined and option.features.slides.themes[key]) ? 'checked' : '' }}>
+									<span class="px-3 py-1 rounded-md border-2 border-line peer-checked:bg-primary peer-checked:border-primary peer-checked:text-white transition-all">
+										{{ __(label) }}
+									</span>
+								</label>
+							{% endfor %}
+						</div>
+
+						<ul class="info mt-2">
+							<li>{{ __('Select which themes are available for users when creating presentations.') }}</li>
+						</ul>
+					</div>
+
+					<div>
+						<label for="features[slides][templates]">
+							{{ p__('label', 'Available templates') }}
+						</label>
+
+						<div class="flex flex-wrap gap-2">
+							{% set templates = {
+								'modern': 'Modern',
+								'classic': 'Classic',
+								'business': 'Business',
+								'academic': 'Academic',
+								'startup': 'Startup'
+							} %}
+							
+							{% for key, label in templates %}
+								<label class="inline-flex items-center gap-2 cursor-pointer">
+									<input type="checkbox" name="features[slides][templates][{{ key }}]" class="hidden peer" 
+										{{ (option.features.slides.templates is not defined) or (option.features.slides.templates[key] is defined and option.features.slides.templates[key]) ? 'checked' : '' }}>
+									<span class="px-3 py-1 rounded-md border-2 border-line peer-checked:bg-primary peer-checked:border-primary peer-checked:text-white transition-all">
+										{{ __(label) }}
+									</span>
+								</label>
+							{% endfor %}
+						</div>
+
+						<ul class="info mt-2">
+							<li>{{ __('Select which templates are available for users when creating presentations.') }}</li>
+						</ul>
+					</div>
+				</section>
+			</div>
+
+			<div class="flex gap-4 justify-end">
+				<a href="admin/settings/features" class="button button-outline">
+					{{ p__('button', 'Cancel') }}
+				</a>
+
+				<button class="button button-accent" type="submit" :processing="isProcessing">
+					{% include "/snippets/spinner.twig" %}
+
+					{{ p__('button', 'Save changes') }}
+				</button>
+			</div>
+		</form>
+	</x-form>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "/layouts/main.twig" %}
+
+{% set active_menu = '/app/library' %}
+
+{% set xdata %}
+list("slides", {
+  filter: "slide",
+  showSearch: true,
+  showVisibility: true,
+  api: {
+    path: "library/items",
+    filters: {
+      type: "slide"
+    }
+  }
+})
+{% endset %}
+
+{% block title p__('title', 'My slides')|title %}
+
+{% block template %}
+	{# Header #}
+	<div>
+		{% include "snippets/back.twig" with {link: 'app/library', label: p__('button', 'Library')} %}
+
+		<div class="flex gap-4 justify-between items-center mt-4">
+			<div>
+				<div class="flex gap-2 items-center">
+					<h1>{{ p__('heading', 'Slides') }}</h1>
+
+					<template x-if="total !== null">
+						<div class="text-sm text-content-dimmed md:hidden">
+							(<span x-text="total"></span>)
+						</div>
+					</template>
+				</div>
+
+				<p class="text-content-dimmed">
+					{{ __('Presentations created with the Slides tool') }}
+				</p>
+			</div>
+		</div>
+	</div>
+
+	{# Filters #}
+	{% include "/snippets/filters.twig" with { 
+    total: __("Total :count slides"),
+    sort: [
+      {
+        value: null,
+        label: p__('label', 'Default')
+      },
+      {
+        value: 'created_at',
+        label: p__('label', 'Date created')
+      },
+      {
+        value: 'title',
+        label: p__('label', 'Title')
+      }
+    ],
+    showHidden: false,
+  } %}
+
+	{# List #}
+	<div class="group/list" data-state="initial" :data-state="state">
+
+		{# Success state #}
+		<div
+			class="hidden grid grid-cols-1 gap-2 group-data-[state=empty]/list:hidden group-data-[state=empty-tab]/list:hidden group-data-[state=initial]/list:hidden group-data-[state=loading]/list:hidden md:grid-cols-2 lg:grid-cols-3"
+			:class="total === null || total > 0 ? 'grid' : 'hidden'">
+
+			<template x-for="i in items" :key="i.id">
+				<a :href="`app/slides/${i.id}`"
+					class="relative flex flex-col items-start gap-4 box group hover:border-line">
+
+					<div class="flex items-start justify-between w-full">
+						<div class="avatar text-white bg-linear-to-br from-[#9B59B6] to-[#E74C3C]">
+							<i class="ti ti-presentation"></i>
+						</div>
+
+						<div class="flex items-center gap-1">
+							<template x-if="!i.visibility || i.visibility == 0">
+								<i class="text-sm text-content-dimmed ti ti-eye-off"></i>
+							</template>
+
+							<div class="relative" x-data="{open:false}">
+								<button type="button"
+									class="relative z-10 flex items-center justify-center w-6 h-6 transition-all rounded-full hover:bg-line-dimmed"
+									@click="open = !open;$event.stopPropagation();">
+									<i class="text-xs ti ti-dots-vertical"></i>
+								</button>
+
+								<div
+									class="absolute right-0 z-30 min-w-[12rem] rounded-lg bg-main shadow-2xl ring-1 ring-line top-full"
+									x-show="open" @click.outside="open = false" x-cloak>
+									<a :href="`app/slides/${i.id}`"
+										class="flex items-center gap-3 px-4 py-2 transition-all rounded-lg hover:bg-intermediate">
+										<i class="text-base ti ti-eye"></i>
+										{{ p__('button', 'View') }}
+									</a>
+
+									<button
+										class="relative flex items-center w-full gap-3 px-4 py-2 transition-all rounded-lg hover:bg-intermediate"
+										@click.stop="currentResource = i; overlay.open('modal'); open = false;"
+										x-data>
+										<i class="text-base ti ti-trash"></i>
+										{{ p__('button', 'Delete') }}
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="flex flex-col gap-2">
+						<h3 class="text-sm font-medium" x-text="i.title"></h3>
+						<div class="flex items-center gap-4 text-xs text-content-dimmed">
+							<span class="flex items-center gap-1">
+								<i class="ti ti-layers-intersect"></i>
+								<span x-text="i.slide_count + ' slides'"></span>
+							</span>
+							<span x-text="dayjs(i.created_at * 1000).fromNow()"></span>
+						</div>
+					</div>
+				</a>
+			</template>
+		</div>
+
+		{% include "/snippets/empty.twig" with {
+      title: p__('heading', 'Empty result set'),
+      message: __('There are no slides yet.'),
+      reset: __('There are no slides matching your search.')
+    } %}
+
+		{% include "/snippets/loader.twig" %}
+	</div>
+
+	{% include "/snippets/delete-modal.twig" with { 
+    title: p__('heading', 'Do you really want to delete slide?'),
+    message: __('Slide will be deleted permanently.'),
+    api: 'library/items'
+  } %}
+{% endblock %}

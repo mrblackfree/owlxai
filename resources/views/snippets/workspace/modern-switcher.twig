@@ -1,0 +1,145 @@
+{# Modern Workspace Switcher Modal #}
+<template x-teleport="body">
+	<div class="fixed inset-0 z-50 flex items-center justify-center p-4"
+		 x-data="{ open: false }"
+		 x-show="open"
+		 @workspace-switcher.window="open = true"
+		 @keydown.escape.window="open = false">
+		
+		{# Backdrop #}
+		<div class="fixed inset-0 bg-black/60 backdrop-blur-sm"
+			 x-show="open"
+			 x-transition.opacity
+			 @click="open = false">
+		</div>
+
+		{# Modal #}
+		<div class="relative w-full max-w-2xl"
+			 x-show="open"
+			 x-transition>
+			<div class="glass-morphism rounded-2xl shadow-2xl overflow-hidden">
+				{# Header #}
+				<div class="p-6 border-b border-white/10">
+					<div class="flex items-center justify-between">
+						<div>
+							<h2 class="text-2xl font-bold gradient-text">{{ __('Switch Workspace') }}</h2>
+							<p class="text-sm text-content-dimmed mt-1">
+								{{ __('Select a workspace or create a new one') }}
+							</p>
+						</div>
+						<button type="button" 
+								class="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-white/10 transition-colors"
+								@click="open = false">
+							<i class="ti ti-x text-xl"></i>
+						</button>
+					</div>
+				</div>
+
+				{# Workspace Grid #}
+				<div class="p-6 max-h-[60vh] overflow-y-auto">
+					<div class="grid gap-4 sm:grid-cols-2">
+						{# Current Workspace #}
+						<div class="relative p-4 rounded-xl border-2 border-purple-500/50 bg-purple-500/10">
+							<div class="absolute top-2 right-2">
+								<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">
+									{{ __('Current') }}
+								</span>
+							</div>
+							
+							<div class="flex items-start gap-4">
+								<div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg shrink-0">
+									{{ workspace.name|slice(0, 1)|upper }}
+								</div>
+								<div class="overflow-hidden">
+									<h3 class="font-semibold truncate">{{ workspace.name }}</h3>
+									<p class="text-sm text-content-dimmed mt-1">
+										{% if workspace.subscription %}
+											{{ workspace.subscription.plan.title }}
+										{% else %}
+											{{ __('Free Plan') }}
+										{% endif %}
+									</p>
+									<div class="flex items-center gap-4 mt-3 text-xs">
+										<span class="flex items-center gap-1">
+											<i class="ti ti-users"></i>
+											{{ workspace.members_count ?? 1 }} {{ __('members') }}
+										</span>
+										<span class="flex items-center gap-1">
+											<i class="ti ti-coins"></i>
+											{{ workspace.credit_count }} {{ __('credits') }}
+										</span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						{# Other Workspaces #}
+						{% for ws in workspaces %}
+							{% if ws.id != workspace.id %}
+								<form method="POST" action="workspace/{{ ws.id }}">
+									<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+									
+									<button type="submit" 
+											class="w-full p-4 rounded-xl border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all text-left group">
+										<div class="flex items-start gap-4">
+											<div class="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center font-bold text-lg shrink-0 group-hover:bg-gradient-to-br group-hover:from-purple-500 group-hover:to-pink-500 group-hover:text-white transition-all">
+												{{ ws.name|slice(0, 1)|upper }}
+											</div>
+											<div class="overflow-hidden">
+												<h3 class="font-semibold truncate">{{ ws.name }}</h3>
+												<p class="text-sm text-content-dimmed mt-1">
+													{% if ws.subscription %}
+														{{ ws.subscription.plan.title }}
+													{% else %}
+														{{ __('Free Plan') }}
+													{% endif %}
+												</p>
+												<div class="flex items-center gap-4 mt-3 text-xs text-content-dimmed">
+													<span class="flex items-center gap-1">
+														<i class="ti ti-users"></i>
+														{{ ws.members_count ?? 1 }}
+													</span>
+													<span class="flex items-center gap-1">
+														<i class="ti ti-coins"></i>
+														{{ ws.credit_count }}
+													</span>
+												</div>
+											</div>
+											<i class="ti ti-arrow-right ml-auto text-content-dimmed opacity-0 group-hover:opacity-100 transition-opacity"></i>
+										</div>
+									</button>
+								</form>
+							{% endif %}
+						{% endfor %}
+
+						{# Create New Workspace #}
+						<button type="button" 
+								class="p-4 rounded-xl border-2 border-dashed border-white/20 hover:border-white/40 hover:bg-white/5 transition-all group"
+								@click="modal.open('workspace-create'); open = false">
+							<div class="flex flex-col items-center justify-center py-4">
+								<div class="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center mb-3 group-hover:bg-white/10 transition-colors">
+									<i class="ti ti-plus text-2xl"></i>
+								</div>
+								<h3 class="font-semibold">{{ __('Create Workspace') }}</h3>
+								<p class="text-sm text-content-dimmed mt-1">
+									{{ __('Start a new project') }}
+								</p>
+							</div>
+						</button>
+					</div>
+				</div>
+
+				{# Footer #}
+				{% if user.role.value == 'admin' %}
+					<div class="p-6 border-t border-white/10 bg-white/5">
+						<a href="admin/workspaces" 
+						   class="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors font-medium">
+							<i class="ti ti-settings"></i>
+							{{ __('Manage All Workspaces') }}
+						</a>
+					</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</template>
